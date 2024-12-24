@@ -663,6 +663,7 @@ void deinitialize() {
 
     vkDestroyPipeline(device, pipeline, NULL);
     vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+    vkDestroyPipelineCache(device, pipelineCache, NULL);
 
     vkDestroyBuffer(device, vertexBuffer, NULL);
     vkFreeMemory(device, vertexBufferMemory, NULL);
