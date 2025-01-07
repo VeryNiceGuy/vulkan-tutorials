@@ -39,12 +39,29 @@ VkCommandBuffer* commandBuffers;
 #define MAX_FRAMES_IN_FLIGHT 2
 VkSemaphore imageAvailableSemaphores[MAX_FRAMES_IN_FLIGHT];
 VkSemaphore renderFinishedSemaphores[MAX_FRAMES_IN_FLIGHT];
-
 VkFence inFlightFences[MAX_FRAMES_IN_FLIGHT];
+
+VkDeviceMemory uniformBuffersMemory[MAX_FRAMES_IN_FLIGHT];
+VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
+
 size_t currentFrame = 0;
 
 struct Vertex {
     float x, y, z;
+};
+
+struct Vertex vertices[] = {
+    {1.0, 1.0, 1.0},
+    {-1.0, -1.0, 1.0 },
+    {-1.0, 1.0, -1.0},
+    {1.0, -1.0, -1.0}
+};
+
+uint32_t indices[] = {
+    0, 2, 1,
+    0, 3, 1,
+    0, 3, 2,
+    1, 2, 3
 };
 
 struct MVP {
@@ -53,13 +70,15 @@ struct MVP {
     Matrix4x4 proj;
 };
 
+struct MVP mvp;
+
 VkPipelineCache pipelineCache;
 VkPipelineLayout pipelineLayout;
 VkPipeline pipeline;
 
-VkDescriptorSetLayout descriptorSetLayout;
+VkDescriptorSetLayout descriptorSetLayouts[MAX_FRAMES_IN_FLIGHT];
 VkDescriptorPool descriptorPool;
-VkDescriptorSet descriptorSet;
+VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
 
 VkDebugUtilsMessengerEXT debugMessenger;
 
@@ -89,56 +108,59 @@ void createDescriptorSetLayout() {
         .pBindings = &uboLayoutBinding
     };
 
-    VkResult r = vkCreateDescriptorSetLayout(device, &layoutInfo, NULL, &descriptorSetLayout);
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        vkCreateDescriptorSetLayout(device, &layoutInfo, NULL, &descriptorSetLayouts[i]);
+    }
 }
 
 void createDescriptorPool() {
     VkDescriptorPoolSize poolSize = {
         .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1
+        .descriptorCount = MAX_FRAMES_IN_FLIGHT
     };
 
     VkDescriptorPoolCreateInfo poolInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .poolSizeCount = 1,
         .pPoolSizes = &poolSize,
-        .maxSets = 1
+        .maxSets = MAX_FRAMES_IN_FLIGHT
     };
 
-    VkResult r = vkCreateDescriptorPool(device, &poolInfo, NULL, &descriptorPool);
+    vkCreateDescriptorPool(device, &poolInfo, NULL, &descriptorPool);
 }
 
 void createDescriptorSet() {
     VkDescriptorSetAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = descriptorPool,
-        .descriptorSetCount = 1,
-        .pSetLayouts = &descriptorSetLayout
+        .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
+        .pSetLayouts = &descriptorSetLayouts
     };
 
-    VkResult r = vkAllocateDescriptorSets(device, &allocInfo, &descriptorSet);
+    vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
 
-    VkDescriptorBufferInfo bufferInfo = {
-        .buffer = uniformBuffer,
-        .offset = 0,
-        .range = VK_WHOLE_SIZE
-    };
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        VkDescriptorBufferInfo bufferInfo = {
+            .buffer = uniformBuffers[i],
+            .offset = 0,
+            .range = VK_WHOLE_SIZE
+        };
 
-    VkWriteDescriptorSet descriptorWrite = {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .dstSet = descriptorSet,
-        .dstBinding = 0,
-        .dstArrayElement = 0,
-        .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = 1,
-        .pBufferInfo = &bufferInfo
-    };
+        VkWriteDescriptorSet descriptorWrite = {};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
 
-    vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, NULL);
+        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, NULL);
+    }
 }
 
-void createUniformBuffer() {
-    struct MVP mvp = {
+void createUniformBuffers() {
+    mvp = (struct MVP){
         .model = matrix4x4_create_identity(),
         .view = matrix4x4_create_look_at_lh(
             (Vector3) {
@@ -160,24 +182,28 @@ void createUniformBuffer() {
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE
     };
 
-    vkCreateBuffer(device, &bufferInfo, NULL, &uniformBuffer);
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        vkCreateBuffer(device, &bufferInfo, NULL, &uniformBuffers[i]);
 
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, uniformBuffer, &memRequirements);
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(device, uniformBuffers[i], &memRequirements);
 
-    VkMemoryAllocateInfo memoryAllocateInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memRequirements.size,
-        .memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-    };
+        VkMemoryAllocateInfo memoryAllocateInfo = {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+            .allocationSize = memRequirements.size,
+            .memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+        };
 
-    vkAllocateMemory(device, &memoryAllocateInfo, NULL, &uniformBufferMemory);
-    vkBindBufferMemory(device, uniformBuffer, uniformBufferMemory, 0);
+        vkAllocateMemory(device, &memoryAllocateInfo, NULL, &uniformBuffersMemory[i]);
+        vkBindBufferMemory(device, uniformBuffers[i], uniformBuffersMemory[i], 0);
+    }
+}
 
+void updateUniformBuffer(uint32_t currentFrame) {
     void* data;
-    vkMapMemory(device, uniformBufferMemory, 0, sizeof(mvp), 0, &data);
+    vkMapMemory(device, uniformBuffersMemory[currentFrame], 0, sizeof(mvp), 0, &data);
     memcpy(data, &mvp, sizeof(mvp));
-    vkUnmapMemory(device, uniformBufferMemory);
+    vkUnmapMemory(device, uniformBuffersMemory[currentFrame]);
 }
 
 void createLogicalDevice() {
@@ -297,8 +323,6 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMes
     }
 }
 
-//
-
 void createInstance() {
     VkApplicationInfo applicationInfo = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -365,18 +389,6 @@ void createRenderPass() {
 }
 
 void createVertexBuffer() {
-    /*struct Vertex vertices[3] = {
-        { 100.0f, 100.0f, 10.0f },
-        { 0.0f, -100.0f, 10.0f },
-        { -100.0f, 100.0f, 10.0f }
-    };*/
-
-    struct Vertex vertices[3] = {
-        { 1.0f, 1.0f, 0.0f },
-        { 0.0f, -1.0f, 0.0f },
-        { -1.0f, 1.0f, 0.0f }
-    };
-
     VkBufferCreateInfo vertexBufferInfoCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = sizeof(vertices),
@@ -403,8 +415,6 @@ void createVertexBuffer() {
 }
 
 void createIndexBuffer() {
-    uint32_t indices[3] = { 0, 1, 2 };
-
     VkBufferCreateInfo indexBufferCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = sizeof(indices),
@@ -497,7 +507,7 @@ void createPipeline() {
     VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .polygonMode = VK_POLYGON_MODE_FILL,
-        //.cullMode = VK_CULL_MODE_BACK_BIT,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
         .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
         .lineWidth = 1.0f
     };
@@ -547,7 +557,12 @@ void createPipeline() {
         .pScissors = &scissor
     };
 
-    VkPipelineLayoutCreateInfo layoutCreateInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, .setLayoutCount = 1, .pSetLayouts = &descriptorSetLayout };
+    VkPipelineLayoutCreateInfo layoutCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = MAX_FRAMES_IN_FLIGHT,
+        .pSetLayouts = descriptorSetLayouts
+    };
+
     vkCreatePipelineLayout(device, &layoutCreateInfo, NULL, &pipelineLayout);
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo = {
@@ -754,8 +769,8 @@ void createCommandBuffers() {
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer, offsets);
         vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, NULL);
-        vkCmdDrawIndexed(commandBuffers[i], 3, 1, 0, 0, 0);
+        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, NULL);
+        vkCmdDrawIndexed(commandBuffers[i], 12, 1, 0, 0, 0);
         vkCmdEndRenderPass(commandBuffers[i]);
         vkEndCommandBuffer(commandBuffers[i]);
     }
@@ -789,7 +804,7 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
     createDescriptorSetLayout();
     createPipeline();
     createFramebuffers();
-    createUniformBuffer();
+    createUniformBuffers();
     createDescriptorPool();
     createDescriptorSet();
     createVertexBuffer();
@@ -799,6 +814,8 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
 }
 
 void render() {
+    updateUniformBuffer(currentFrame);
+
     vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1, &inFlightFences[currentFrame]);
 

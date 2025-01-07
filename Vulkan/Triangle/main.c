@@ -17,14 +17,14 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
     WNDCLASS wc = { 0 };
     wc.lpfnWndProc = WndProc;
     wc.hInstance = hInst;
-    wc.lpszClassName = L"TriangleClass";
+    wc.lpszClassName = L"MVP";
 
     RegisterClass(&wc);
 
     HWND hWnd = CreateWindowEx(
         0,
         wc.lpszClassName,
-        L"Triangle",
+        L"MVP",
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, WIDTH, HEIGHT,
         NULL, NULL, hInst, NULL);
