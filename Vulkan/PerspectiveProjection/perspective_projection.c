@@ -71,7 +71,7 @@ struct MVP {
 };
 
 struct MVP mvp;
-struct Vector3 eye = { .x = 0, .y = 0, .z = -5.0f };
+struct Vector3 eye = { .x = -5, .y = 0, .z = -5.0f };
 
 VkPipelineCache pipelineCache;
 VkPipelineLayout pipelineLayout;
@@ -203,7 +203,7 @@ void updateUniformBuffer(uint32_t currentFrame) {
     mvp.view = matrix4x4_create_look_at_lh(
         eye,
         (Vector3) {
-        .x = 0.0f, .y = 0.0f, .z = 0.0f
+        .x = 0.0f, .y = 0.0f, .z = 1.0f
     },
         (Vector3) {
         .x = 0.0f, .y = 1.0f, .z = 0.0f
@@ -823,10 +823,10 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
 }
 
 void render() {
-    updateUniformBuffer(currentFrame);
-
     vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1, &inFlightFences[currentFrame]);
+
+    updateUniformBuffer(currentFrame);
 
     uint32_t imageIndex;
     vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);

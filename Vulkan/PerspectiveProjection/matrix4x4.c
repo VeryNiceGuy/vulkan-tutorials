@@ -18,13 +18,13 @@ Matrix4x4 matrix4x4_create_look_at_lh(Vector3 eye, Vector3 at, Vector3 up) {
 
     return (Matrix4x4) {
         .m_11 = xAxis.x, .m_12 = yAxis.x, .m_13 = zAxis.x, .m_14 = 0.0f,
-            .m_21 = xAxis.y, .m_22 = yAxis.y, .m_23 = zAxis.y, .m_24 = 0.0f,
-            .m_31 = xAxis.z, .m_32 = yAxis.z, .m_33 = zAxis.z, .m_34 = 0.0f,
+        .m_21 = xAxis.y, .m_22 = yAxis.y, .m_23 = zAxis.y, .m_24 = 0.0f,
+        .m_31 = xAxis.z, .m_32 = yAxis.z, .m_33 = zAxis.z, .m_34 = 0.0f,
 
-            .m_41 = -vector3_dot(xAxis, eye),
-            .m_42 = -vector3_dot(yAxis, eye),
-            .m_43 = -vector3_dot(zAxis, eye),
-            .m_44 = 1.0f
+        .m_41 = -vector3_dot(xAxis, eye),
+        .m_42 = -vector3_dot(yAxis, eye),
+        .m_43 = -vector3_dot(zAxis, eye),
+        .m_44 = 1.0f
     };
 }
 
