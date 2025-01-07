@@ -11,3 +11,8 @@ static const uint32_t HEIGHT = 600;
 void initialize(HINSTANCE hInstance, HWND hWnd);
 void render();
 void deinitialize();
+
+void moveForward();
+void moveLeft();
+void moveRight();
+void moveBackward();

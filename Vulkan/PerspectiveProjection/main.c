@@ -1,8 +1,26 @@
 #include <windows.h>
-#include "triangle.h"
+#include "perspective_projection.h"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
+    case WM_KEYDOWN:
+        switch (wParam) {
+        case VK_LEFT:
+            moveLeft();
+            break;
+        case VK_RIGHT:
+            moveRight();
+            break;
+        case VK_UP:
+            moveForward();
+            break;
+        case VK_DOWN:
+            moveBackward();
+            break;
+        default:
+            break;
+        }
+        break;
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

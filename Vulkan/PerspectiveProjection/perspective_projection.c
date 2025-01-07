@@ -71,6 +71,7 @@ struct MVP {
 };
 
 struct MVP mvp;
+struct Vector3 eye = { .x = 0, .y = 0, .z = -5.0f };
 
 VkPipelineCache pipelineCache;
 VkPipelineLayout pipelineLayout;
@@ -146,14 +147,15 @@ void createDescriptorSet() {
             .range = VK_WHOLE_SIZE
         };
 
-        VkWriteDescriptorSet descriptorWrite = {};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = descriptorSets[i];
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &bufferInfo;
+        VkWriteDescriptorSet descriptorWrite = {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSets[i],
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .pBufferInfo = &bufferInfo
+        };
 
         vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, NULL);
     }
@@ -163,9 +165,7 @@ void createUniformBuffers() {
     mvp = (struct MVP){
         .model = matrix4x4_create_identity(),
         .view = matrix4x4_create_look_at_lh(
-            (Vector3) {
-                .x = 0.0f, .y = 0.0f, .z = -5.0f
-            },
+            eye,
             (Vector3) {
                 .x = 0.0f, .y = 0.0f, .z = 0.0f
             },
@@ -200,6 +200,15 @@ void createUniformBuffers() {
 }
 
 void updateUniformBuffer(uint32_t currentFrame) {
+    mvp.view = matrix4x4_create_look_at_lh(
+        eye,
+        (Vector3) {
+        .x = 0.0f, .y = 0.0f, .z = 0.0f
+    },
+        (Vector3) {
+        .x = 0.0f, .y = 1.0f, .z = 0.0f
+    });
+
     void* data;
     vkMapMemory(device, uniformBuffersMemory[currentFrame], 0, sizeof(mvp), 0, &data);
     memcpy(data, &mvp, sizeof(mvp));
@@ -506,7 +515,7 @@ void createPipeline() {
 
     VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .polygonMode = VK_POLYGON_MODE_FILL,
+        .polygonMode = VK_POLYGON_MODE_LINE,
         .cullMode = VK_CULL_MODE_BACK_BIT,
         .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
         .lineWidth = 1.0f
@@ -892,4 +901,20 @@ void deinitialize() {
     vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroyInstance(instance, NULL);
+}
+
+void moveForward() {
+    eye.z += 0.1f;
+}
+
+void moveLeft() {
+    eye.x -= 0.1f;
+}
+
+void moveRight() {
+    eye.x += 0.1f;
+}
+
+void moveBackward() {
+    eye.z -= 0.1f;
 }

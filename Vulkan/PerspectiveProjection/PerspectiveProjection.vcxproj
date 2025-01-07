@@ -130,7 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Triangle\main.c" />
+    <ClCompile Include="main.c" />
     <ClCompile Include="matrix4x4.c" />
     <ClCompile Include="perspective_projection.c" />
     <ClCompile Include="vector3.c" />
