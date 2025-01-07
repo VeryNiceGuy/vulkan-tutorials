@@ -6,8 +6,8 @@ Vector3 vector3_normalize(Vector3 v) {
 
     return (Vector3) {
         .x = v.x / length,
-            .y = v.y / length,
-            .z = v.z / length
+        .y = v.y / length,
+        .z = v.z / length
     };
 }
 
@@ -18,72 +18,72 @@ float vector3_magnitude(Vector3 v) {
 Vector3 vector3_add(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = v1.x + v2.x,
-            .y = v1.y + v2.y,
-            .z = v1.z + v2.z
+        .y = v1.y + v2.y,
+        .z = v1.z + v2.z
     };
 }
 
 Vector3 vector3_add_scalar(Vector3 v, float s) {
     return (Vector3) {
         .x = v.x + s,
-            .y = v.y + s,
-            .z = v.z + s
+        .y = v.y + s,
+        .z = v.z + s
     };
 }
 
 Vector3 vector3_subtract(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = v1.x - v2.x,
-            .y = v1.y - v2.y,
-            .z = v1.z - v2.z
+        .y = v1.y - v2.y,
+        .z = v1.z - v2.z
     };
 }
 
 Vector3 vector3_subtract_scalar(Vector3 v, float s) {
     return (Vector3) {
         .x = v.x - s,
-            .y = v.y - s,
-            .z = v.z - s
+        .y = v.y - s,
+        .z = v.z - s
     };
 }
 
 Vector3 vector3_multiply(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = v1.x * v2.x,
-            .y = v1.y * v2.y,
-            .z = v1.z * v2.z
+        .y = v1.y * v2.y,
+        .z = v1.z * v2.z
     };
 }
 
 Vector3 vector3_multiply_scalar(Vector3 v, float s) {
     return (Vector3) {
         .x = v.x * s,
-            .y = v.y * s,
-            .z = v.z * s
+        .y = v.y * s,
+        .z = v.z * s
     };
 }
 
 Vector3 vector3_divide(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = v1.x / v2.x,
-            .y = v1.y / v2.y,
-            .z = v1.z / v2.z
+        .y = v1.y / v2.y,
+        .z = v1.z / v2.z
     };
 }
 
 Vector3 vector3_divide_scalar(Vector3 v, float s) {
     return (Vector3) {
         .x = v.x / s,
-            .y = v.y / s,
-            .z = v.z / s
+        .y = v.y / s,
+        .z = v.z / s
     };
 }
 
 Vector3 vector3_cross(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = v1.y * v2.z - v1.z * v2.y,
-            .y = v1.z * v2.x - v1.x * v2.z,
-            .z = v1.x * v2.y - v1.y * v2.x
+        .y = v1.z * v2.x - v1.x * v2.z,
+        .z = v1.x * v2.y - v1.y * v2.x
     };
 }
 
@@ -120,16 +120,16 @@ Vector3 vector3_lerp(Vector3 v1, Vector3 v2, float t) {
 Vector3 vector3_clamp(Vector3 v, Vector3 min, Vector3 max) {
     return (Vector3) {
         .x = fmaxf(min.x, fminf(v.x, max.x)),
-            .y = fmaxf(min.y, fminf(v.y, max.y)),
-            .z = fmaxf(min.z, fminf(v.z, max.z))
+        .y = fmaxf(min.y, fminf(v.y, max.y)),
+        .z = fmaxf(min.z, fminf(v.z, max.z))
     };
 }
 
 Vector3 vector3_midpoint(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = (v1.x + v2.x) / 2.0f,
-            .y = (v1.y + v2.y) / 2.0f,
-            .z = (v1.z + v2.z) / 2.0f
+        .y = (v1.y + v2.y) / 2.0f,
+        .z = (v1.z + v2.z) / 2.0f
     };
 }
 
@@ -165,8 +165,8 @@ Vector3 vector3_rotate_x(Vector3 v, float angle) {
 
     return (Vector3) {
         .x = v.x,
-            .y = v.y * cosAngle - v.z * sinAngle,
-            .z = v.y * sinAngle + v.z * cosAngle
+        .y = v.y * cosAngle - v.z * sinAngle,
+        .z = v.y * sinAngle + v.z * cosAngle
     };
 }
 
@@ -176,8 +176,8 @@ Vector3 vector3_rotate_y(Vector3 v, float angle) {
 
     return (Vector3) {
         .x = v.x * cosAngle + v.z * sinAngle,
-            .y = v.y,
-            .z = -v.x * sinAngle + v.z * cosAngle
+        .y = v.y,
+        .z = -v.x * sinAngle + v.z * cosAngle
     };
 }
 
@@ -187,24 +187,24 @@ Vector3 vector3_rotate_z(Vector3 v, float angle) {
 
     return (Vector3) {
         .x = v.x * cosAngle - v.y * sinAngle,
-            .y = v.x * sinAngle + v.y * cosAngle,
-            .z = v.z
+        .y = v.x * sinAngle + v.y * cosAngle,
+        .z = v.z
     };
 }
 
 Vector3 vector3_negate(Vector3 v) {
     return (Vector3) {
         .x = -v.x,
-            .y = -v.y,
-            .z = -v.z
+        .y = -v.y,
+        .z = -v.z
     };
 }
 
 Vector3 vector3_abs(Vector3 v) {
     return (Vector3) {
         .x = fabsf(v.x),
-            .y = fabsf(v.y),
-            .z = fabsf(v.z)
+        .y = fabsf(v.y),
+        .z = fabsf(v.z)
     };
 }
 
@@ -219,71 +219,71 @@ float vector3_min_component(Vector3 v) {
 Vector3 vector3_pow(Vector3 v, float exponent) {
     return (Vector3) {
         .x = powf(v.x, exponent),
-            .y = powf(v.y, exponent),
-            .z = powf(v.z, exponent)
+        .y = powf(v.y, exponent),
+        .z = powf(v.z, exponent)
     };
 }
 
 Vector3 vector3_sqrt(Vector3 v) {
     return (Vector3) {
         .x = sqrtf(v.x),
-            .y = sqrtf(v.y),
-            .z = sqrtf(v.z)
+        .y = sqrtf(v.y),
+        .z = sqrtf(v.z)
     };
 }
 
 Vector3 vector3_min(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = fminf(v1.x, v2.x),
-            .y = fminf(v1.y, v2.y),
-            .z = fminf(v1.z, v2.z)
+        .y = fminf(v1.y, v2.y),
+        .z = fminf(v1.z, v2.z)
     };
 }
 
 Vector3 vector3_max(Vector3 v1, Vector3 v2) {
     return (Vector3) {
         .x = fmaxf(v1.x, v2.x),
-            .y = fmaxf(v1.y, v2.y),
-            .z = fmaxf(v1.z, v2.z)
+        .y = fmaxf(v1.y, v2.y),
+        .z = fmaxf(v1.z, v2.z)
     };
 }
 
 Vector3 vector3_round(Vector3 v) {
     return (Vector3) {
         .x = roundf(v.x),
-            .y = roundf(v.y),
-            .z = roundf(v.z)
+        .y = roundf(v.y),
+        .z = roundf(v.z)
     };
 }
 
 Vector3 vector3_floor(Vector3 v) {
     return (Vector3) {
         .x = floorf(v.x),
-            .y = floorf(v.y),
-            .z = floorf(v.z)
+        .y = floorf(v.y),
+        .z = floorf(v.z)
     };
 }
 
 Vector3 vector3_ceil(Vector3 v) {
     return (Vector3) {
         .x = ceilf(v.x),
-            .y = ceilf(v.y),
-            .z = ceilf(v.z)
+        .y = ceilf(v.y),
+        .z = ceilf(v.z)
     };
 }
 
 Vector3 vector3_log(Vector3 v) {
     return (Vector3) {
         .x = logf(v.x),
-            .y = logf(v.y),
-            .z = logf(v.z)
+        .y = logf(v.y),
+        .z = logf(v.z)
     };
 }
 
 Vector3 vector3_exp(Vector3 v) {
     return (Vector3) {
         .x = expf(v.x),
-            .y = expf(v.y),
-            .z = expf(v.z)
+        .y = expf(v.y),
+        .z = expf(v.z)
     };
 }
