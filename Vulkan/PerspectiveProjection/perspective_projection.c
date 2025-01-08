@@ -135,7 +135,7 @@ void createDescriptorSet() {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
         .descriptorPool = descriptorPool,
         .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
-        .pSetLayouts = &descriptorSetLayouts
+        .pSetLayouts = descriptorSetLayouts
     };
 
     vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);

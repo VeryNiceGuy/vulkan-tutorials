@@ -1,6 +1,7 @@
 #include "matrix4x4.h"
 #include "vector3.h"
 #include <math.h>
+#include "dual_quaternion.h"
 
 Matrix4x4 matrix4x4_create_identity() {
     return (Matrix4x4) {
@@ -228,5 +229,75 @@ Matrix4x4 matrix4x4_multiply_scalar(Matrix4x4 m, float scalar) {
         .m_21 = m.m_21 * scalar, .m_22 = m.m_22 * scalar, .m_23 = m.m_23 * scalar, .m_24 = m.m_24 * scalar,
         .m_31 = m.m_31 * scalar, .m_32 = m.m_32 * scalar, .m_33 = m.m_33 * scalar, .m_34 = m.m_34 * scalar,
         .m_41 = m.m_41 * scalar, .m_42 = m.m_42 * scalar, .m_43 = m.m_43 * scalar, .m_44 = m.m_44 * scalar
+    };
+}
+
+Matrix4x4 matrix4x4_from_quaternion(Quaternion q) {
+    float xx = q.x * q.x;
+    float yy = q.y * q.y;
+    float zz = q.z * q.z;
+    float xy = q.x * q.y;
+    float xz = q.x * q.z;
+    float yz = q.y * q.z;
+    float wx = q.w * q.x;
+    float wy = q.w * q.y;
+    float wz = q.w * q.z;
+
+    return (Matrix4x4) {
+        .m_11 = 1.0f - 2.0f * (yy + zz),
+        .m_12 = 2.0f * (xy - wz),
+        .m_13 = 2.0f * (xz + wy),
+        .m_14 = 0.0f,
+
+        .m_21 = 2.0f * (xy + wz),
+        .m_22 = 1.0f - 2.0f * (xx + zz),
+        .m_23 = 2.0f * (yz - wx),
+        .m_24 = 0.0f,
+
+        .m_31 = 2.0f * (xz - wy),
+        .m_32 = 2.0f * (yz + wx),
+        .m_33 = 1.0f - 2.0f * (xx + yy),
+        .m_34 = 0.0f,
+
+        .m_41 = 0.0f,
+        .m_42 = 0.0f,
+        .m_43 = 0.0f,
+        .m_44 = 1.0f
+    };
+}
+
+Matrix4x4 matrix4x4_from_dual_quaternion(DualQuaternion dq) {
+    float xx = dq.real.x * dq.real.x;
+    float yy = dq.real.y * dq.real.y;
+    float zz = dq.real.z * dq.real.z;
+    float xy = dq.real.x * dq.real.y;
+    float xz = dq.real.x * dq.real.z;
+    float yz = dq.real.y * dq.real.z;
+    float wx = dq.real.w * dq.real.x;
+    float wy = dq.real.w * dq.real.y;
+    float wz = dq.real.w * dq.real.z;
+
+    Vector3 translation = vector3_negate(dual_quaternion_get_translation(dq));
+
+    return (Matrix4x4) {
+        .m_11 = 1.0f - 2.0f * (yy + zz),
+        .m_12 = 2.0f * (xy - wz),
+        .m_13 = 2.0f * (xz + wy),
+        .m_14 = 0.0f,
+
+        .m_21 = 2.0f * (xy + wz),
+        .m_22 = 1.0f - 2.0f * (xx + zz),
+        .m_23 = 2.0f * (yz - wx),
+        .m_24 = 0.0f,
+
+        .m_31 = 2.0f * (xz - wy),
+        .m_32 = 2.0f * (yz + wx),
+        .m_33 = 1.0f - 2.0f * (xx + yy),
+        .m_34 = 0.0f,
+
+        .m_41 = translation.x,
+        .m_42 = translation.y,
+        .m_43 = translation.z,
+        .m_44 = 1.0f
     };
 }

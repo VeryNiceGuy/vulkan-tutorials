@@ -130,14 +130,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="camera.c" />
+    <ClCompile Include="dual_quaternion.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="matrix4x4.c" />
     <ClCompile Include="perspective_projection.c" />
+    <ClCompile Include="quaternion.c" />
     <ClCompile Include="vector3.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="dual_quaternion.h" />
     <ClInclude Include="matrix4x4.h" />
     <ClInclude Include="perspective_projection.h" />
+    <ClInclude Include="quaternion.h" />
     <ClInclude Include="vector3.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

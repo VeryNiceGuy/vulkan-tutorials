@@ -1,5 +1,7 @@
 #pragma once
 #include "vector3.h"
+#include "quaternion.h"
+#include "dual_quaternion.h"
 
 typedef struct Matrix4x4 {
 	float m_11, m_12, m_13, m_14;
@@ -23,3 +25,5 @@ Matrix4x4 matrix4x4_add(Matrix4x4 a, Matrix4x4 b);
 Matrix4x4 matrix4x4_subtract(Matrix4x4 a, Matrix4x4 b);
 Matrix4x4 matrix4x4_multiply(Matrix4x4 a, Matrix4x4 b);
 Matrix4x4 matrix4x4_multiply_scalar(Matrix4x4 m, float scalar);
+Matrix4x4 matrix4x4_from_quaternion(Quaternion q);
+Matrix4x4 matrix4x4_from_dual_quaternion(DualQuaternion dq);
