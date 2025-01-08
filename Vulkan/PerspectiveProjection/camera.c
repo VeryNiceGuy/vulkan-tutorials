@@ -66,7 +66,7 @@ Vector3 camera_get_direction(Camera* camera) {
 }
 
 void camera_move(Camera* camera, float step) {
-    Vector3 result = vector3_multiply_scalar(camera_get_direction(camera), step);
+    Vector3 result = vector3_add(camera_get_position(camera), vector3_multiply_scalar(camera_get_direction(camera), step));
     camera_translate(camera, result);
 }
 

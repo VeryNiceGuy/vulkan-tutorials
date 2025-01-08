@@ -5,18 +5,19 @@
 DualQuaternion dual_quaternion_create(Quaternion rotation, Vector3 translation) {
     DualQuaternion dq = {
         .real = rotation,
-        .dual = quaternion_multiply_scalar(((Quaternion) {
-            .w = 0.0f,
-            .x = translation.x,
-            .y = translation.y,
-            .z = translation.z
-        }, rotation), 0.5f)
+        .dual = quaternion_multiply_scalar(
+            quaternion_multiply((Quaternion) {
+                .w = 0.0f,
+                .x = translation.x,
+                .y = translation.y,
+                .z = translation.z
+            }, rotation), 0.5f)
     };
     return dq;
 }
 
 Vector3 dual_quaternion_get_translation(DualQuaternion dq) {
-    Quaternion q = quaternion_multiply_scalar(quaternion_multiply(dq.dual, dq.real), 2.0f);
+    Quaternion q = quaternion_multiply_scalar(quaternion_multiply(dq.dual, quaternion_conjugate(dq.real)), 2.0f);
     return (Vector3) { .x = q.x, .y = q.y, .z = q.z };
 }
 

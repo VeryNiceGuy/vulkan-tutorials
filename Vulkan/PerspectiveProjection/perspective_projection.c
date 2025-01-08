@@ -1,6 +1,7 @@
 #include "perspective_projection.h"
 #include "vector3.h"
 #include "matrix4x4.h"
+#include "camera.h"
 
 VkInstance instance;
 VkDevice device;
@@ -71,7 +72,8 @@ struct MVP {
 };
 
 struct MVP mvp;
-struct Vector3 eye = { .x = -5, .y = 0, .z = -5.0f };
+struct Vector3 eye = { .x = 0, .y = 0, .z = -5.0f };
+Camera camera;
 
 VkPipelineCache pipelineCache;
 VkPipelineLayout pipelineLayout;
@@ -208,6 +210,8 @@ void updateUniformBuffer(uint32_t currentFrame) {
         (Vector3) {
         .x = 0.0f, .y = 1.0f, .z = 0.0f
     });
+
+    mvp.view = camera_calculate_view_matrix(&camera);
 
     void* data;
     vkMapMemory(device, uniformBuffersMemory[currentFrame], 0, sizeof(mvp), 0, &data);
@@ -803,6 +807,8 @@ void createSemaphores() {
 }
 
 void initialize(HINSTANCE hInstance, HWND hWnd) {
+    camera_init_quaternion(&camera, (Quaternion) { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f }, (Vector3) { .x = 0, .y = 0, .z = -5 });
+
     createInstance();
     createSurface(hInstance, hWnd);
     getPhysicalDevice();
@@ -909,17 +915,17 @@ void deinitialize() {
 }
 
 void moveForward() {
-    eye.z += 0.1f;
+    camera_move(&camera, 0.1f);
 }
 
 void moveLeft() {
-    eye.x -= 0.1f;
+
 }
 
 void moveRight() {
-    eye.x += 0.1f;
+
 }
 
 void moveBackward() {
-    eye.z -= 0.1f;
+    camera_move(&camera, -0.1f);
 }
