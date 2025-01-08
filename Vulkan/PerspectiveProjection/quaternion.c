@@ -78,9 +78,17 @@ Quaternion quaternion_angle_axis(float angle, Vector3 axis) {
     float s = sinf(rad / 2.0f);
 
     return (Quaternion) {
-        .w = cos(rad / 2.0f),
+        .w = cosf(rad / 2.0f),
         .x = s * axis.x,
         .y = s * axis.y,
         .z = s * axis.z
     };
+}
+
+Vector3 quaternion_rotate_vector(Quaternion q, Vector3 v) {
+    Quaternion vQuat = { 0.0f, v.x, v.y, v.z };
+    Quaternion qConjugate = quaternion_conjugate(q);
+    Quaternion result = quaternion_multiply(quaternion_multiply(q, vQuat), qConjugate);
+    
+    return (Vector3) { .x = result.x, .y = result.y, .z = result.z };
 }

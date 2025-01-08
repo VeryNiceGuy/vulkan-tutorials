@@ -25,4 +25,7 @@ void camera_set_position(Camera* camera, Vector3 position);
 void camera_rotate(Camera* camera, Quaternion rotation);
 void camera_translate(Camera* camera, Vector3 translation);
 
+Vector3 camera_get_direction(Camera* camera);
+void camera_move(Camera* camera, float step);
+
 Matrix4x4 camera_calculate_view_matrix(Camera* camera);

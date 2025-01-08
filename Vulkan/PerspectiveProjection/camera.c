@@ -61,6 +61,15 @@ void camera_translate(Camera* camera, Vector3 translation) {
     camera->transform = dual_quaternion_create(camera->transform.real, translation);
 }
 
+Vector3 camera_get_direction(Camera* camera) {
+    return quaternion_rotate_vector(camera->transform.real, (Vector3) { .x = 0.0f, .y = 0.0, .z = 1.0f });
+}
+
+void camera_move(Camera* camera, float step) {
+    Vector3 result = vector3_multiply_scalar(camera_get_direction(camera), step);
+    camera_translate(camera, result);
+}
+
 Matrix4x4 camera_calculate_view_matrix(Camera* camera) {
     return matrix4x4_from_dual_quaternion(camera->transform);
 };

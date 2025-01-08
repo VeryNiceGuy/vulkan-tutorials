@@ -14,3 +14,4 @@ Quaternion quaternion_normalize(Quaternion q);
 Quaternion quaternion_conjugate(Quaternion q);
 Quaternion quaternion_inverse(Quaternion q);
 Quaternion quaternion_angle_axis(float angle, Vector3 axis);
+Vector3 quaternion_rotate_vector(Quaternion q, Vector3 v);
