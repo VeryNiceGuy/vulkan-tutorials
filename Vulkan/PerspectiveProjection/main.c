@@ -1,8 +1,27 @@
 #include <windows.h>
+#include <windowsx.h>
 #include "perspective_projection.h"
+
+int prevMouseX = 0;
+int prevMouseY = 0;
+int deltaX = 0;
+int deltaY = 0;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
+    case WM_MOUSEMOVE: {
+        int mouseX = GET_X_LPARAM(lParam);
+        int mouseY = GET_Y_LPARAM(lParam);
+
+        deltaX = mouseX - prevMouseX;
+        deltaY = mouseY - prevMouseY;
+
+        prevMouseX = mouseX;
+        prevMouseY = mouseY;
+
+        mouseMove(deltaX, deltaY);
+        break;
+    }
     case WM_KEYDOWN:
         switch (wParam) {
         case VK_LEFT:

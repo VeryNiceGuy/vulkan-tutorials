@@ -18,20 +18,17 @@ void camera_init_dual_quaternion(Camera* camera, DualQuaternion transform) {
 
 void camera_yaw(Camera* camera, float angle) {
     Quaternion yaw = quaternion_angle_axis(angle, (Vector3) { 0.0f, 1.0f, 0.0f });
-    Vector3 translation = dual_quaternion_get_translation(camera->transform);
-    camera->transform = dual_quaternion_create(quaternion_multiply(yaw, camera->transform.real), translation);
+    camera->transform.real = quaternion_multiply(yaw, camera->transform.real);
 }
 
 void camera_pitch(Camera* camera, float angle) {
     Quaternion pitch = quaternion_angle_axis(angle, (Vector3) { 1.0f, 0.0f, 0.0f });
-    Vector3 translation = dual_quaternion_get_translation(camera->transform);
-    camera->transform = dual_quaternion_create(quaternion_multiply(pitch, camera->transform.real), translation);
+    camera->transform.real = quaternion_multiply(pitch, camera->transform.real);
 }
 
 void camera_roll(Camera* camera, float angle) {
     Quaternion roll = quaternion_angle_axis(angle, (Vector3) { 0.0f, 0.0f, 1.0f });
-    Vector3 translation = dual_quaternion_get_translation(camera->transform);
-    camera->transform = dual_quaternion_create(quaternion_multiply(roll, camera->transform.real), translation);
+    camera->transform.real = quaternion_multiply(roll, camera->transform.real);
 }
 
 Quaternion camera_get_rotation(Camera* camera) {
@@ -58,15 +55,21 @@ void camera_rotate(Camera* camera, Quaternion rotation) {
 }
 
 void camera_translate(Camera* camera, Vector3 translation) {
-    camera->transform = dual_quaternion_create(camera->transform.real, translation);
+    //camera->transform = dual_quaternion_create(camera->transform.real, translation);
+    camera->transform.dual = quaternion_multiply_scalar(quaternion_multiply((Quaternion) { .w = 0, .x = translation.x, .y = translation.y, .z = translation.z }, camera->transform.real), 0.5f);
 }
 
 Vector3 camera_get_direction(Camera* camera) {
-    return quaternion_rotate_vector(camera->transform.real, (Vector3) { .x = 0.0f, .y = 0.0, .z = 1.0f });
+    return vector3_normalize(quaternion_rotate_vector(camera->transform.real, (Vector3) { .x = 0.0f, .y = 0.0, .z = 1.0f }));
 }
 
 void camera_move(Camera* camera, float step) {
-    Vector3 result = vector3_add(camera_get_position(camera), vector3_multiply_scalar(camera_get_direction(camera), step));
+    Vector3 t = camera_get_direction(camera);
+    Vector3 t2 = camera_get_position(camera);
+
+    Vector3 result = vector3_add(camera_get_position(camera), vector3_multiply_scalar((Vector3) { .x = 0.0f, .y = 0.0, .z = 1.0f }, step));
+    //Vector3 result = vector3_add(camera_get_position(camera), vector3_multiply_scalar(camera_get_direction(camera), step));
+    //Vector3 result = vector3_multiply_scalar(camera_get_direction(camera), step);
     camera_translate(camera, result);
 }
 

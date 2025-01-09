@@ -919,13 +919,18 @@ void moveForward() {
 }
 
 void moveLeft() {
-
+    camera_yaw(&camera, 10.1f);
 }
 
 void moveRight() {
-
+    camera_yaw(&camera, -10.1f);
 }
 
 void moveBackward() {
     camera_move(&camera, -0.1f);
+}
+
+void mouseMove(float x, float y) {
+    //camera_pitch(&camera, y * 0.1f);
+    //camera_yaw(&camera, x * 0.1f);
 }
