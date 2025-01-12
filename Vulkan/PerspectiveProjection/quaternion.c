@@ -86,7 +86,7 @@ Quaternion quaternion_angle_axis(float angle, Vector3 axis) {
 }
 
 Vector3 quaternion_rotate_vector(Quaternion q, Vector3 v) {
-    Quaternion vQuat = { 0.0f, v.x, v.y, v.z };
+    Quaternion vQuat = { .w = 0.0f, .x = v.x, .y = v.y, .z = v.z };
     Quaternion qConjugate = quaternion_conjugate(q);
     Quaternion result = quaternion_multiply(quaternion_multiply(q, vQuat), qConjugate);
     

@@ -919,11 +919,11 @@ void moveForward() {
 }
 
 void moveLeft() {
-    camera_yaw(&camera, 10.1f);
+    camera_yaw(&camera, -0.1f);
 }
 
 void moveRight() {
-    camera_yaw(&camera, -10.1f);
+    camera_yaw(&camera, 0.1f);
 }
 
 void moveBackward() {

@@ -266,6 +266,45 @@ Matrix4x4 matrix4x4_from_quaternion(Quaternion q) {
     };
 }
 
+Matrix4x4 matrix4x4_from_quaternion_vector3(Quaternion q, Vector3 v) {
+    float xx = q.x * q.x;
+    float yy = q.y * q.y;
+    float zz = q.z * q.z;
+    float xy = q.x * q.y;
+    float xz = q.x * q.z;
+    float yz = q.y * q.z;
+    float wx = q.w * q.x;
+    float wy = q.w * q.y;
+    float wz = q.w * q.z;
+
+    q = quaternion_normalize(q);
+    Quaternion q_conj = quaternion_conjugate(q);
+    Quaternion translation = {0, -v.x, -v.y, -v.z};
+    Quaternion t = quaternion_multiply(quaternion_multiply(q_conj, translation), q);
+
+    return (Matrix4x4) {
+        .m_11 = 1.0f - 2.0f * (yy + zz),
+        .m_12 = 2.0f * (xy - wz),
+        .m_13 = 2.0f * (xz + wy),
+        .m_14 = 0.0f,
+
+        .m_21 = 2.0f * (xy + wz),
+        .m_22 = 1.0f - 2.0f * (xx + zz),
+        .m_23 = 2.0f * (yz - wx),
+        .m_24 = 0.0f,
+
+        .m_31 = 2.0f * (xz - wy),
+        .m_32 = 2.0f * (yz + wx),
+        .m_33 = 1.0f - 2.0f * (xx + yy),
+        .m_34 = 0.0f,
+
+        .m_41 = t.x,
+        .m_42 = t.y,
+        .m_43 = t.z,
+        .m_44 = 1.0f
+    };
+}
+
 Matrix4x4 matrix4x4_from_dual_quaternion(DualQuaternion dq) {
     float xx = dq.real.x * dq.real.x;
     float yy = dq.real.y * dq.real.y;
