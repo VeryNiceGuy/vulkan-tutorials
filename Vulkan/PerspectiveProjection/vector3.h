@@ -7,6 +7,7 @@ typedef struct Vector3 {
 static const Vector3 vector3_unit_x = { .x = 1.0f, .y = 0.0f, .z = 0.0f };
 static const Vector3 vector3_unit_y = { .x = 0.0f, .y = 1.0f, .z = 0.0f };
 static const Vector3 vector3_unit_z = { .x = 0.0f, .y = 0.0f, .z = 1.0f };
+static const Vector3 vector3_zero = { .x = 0.0f, .y = 0.0f, .z = 0.0f };
 
 Vector3 vector3_normalize(Vector3 v);
 float vector3_magnitude(Vector3 v);

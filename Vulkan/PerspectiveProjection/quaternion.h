@@ -5,6 +5,8 @@ typedef struct Quaternion {
     float w, x, y, z;
 } Quaternion;
 
+static const Quaternion quaternion_identity = { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };
+
 Quaternion quaternion_add(Quaternion a, Quaternion b);
 Quaternion quaternion_subtract(Quaternion a, Quaternion b);
 Quaternion quaternion_multiply(Quaternion a, Quaternion b);

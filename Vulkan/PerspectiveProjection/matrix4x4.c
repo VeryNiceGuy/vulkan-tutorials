@@ -120,24 +120,24 @@ float matrix4x4_determinant(Matrix4x4 m) {
 Matrix4x4 matrix4x4_adjugate(Matrix4x4 m) {
     return (Matrix4x4) {
         .m_11 = m.m_22 * (m.m_33 * m.m_44 - m.m_34 * m.m_43) - m.m_23 * (m.m_32 * m.m_44 - m.m_34 * m.m_42) + m.m_24 * (m.m_32 * m.m_43 - m.m_33 * m.m_42),
-            .m_12 = -m.m_12 * (m.m_33 * m.m_44 - m.m_34 * m.m_43) + m.m_13 * (m.m_32 * m.m_44 - m.m_34 * m.m_42) - m.m_14 * (m.m_32 * m.m_43 - m.m_33 * m.m_42),
-            .m_13 = m.m_12 * (m.m_23 * m.m_44 - m.m_24 * m.m_43) - m.m_13 * (m.m_22 * m.m_44 - m.m_24 * m.m_42) + m.m_14 * (m.m_22 * m.m_43 - m.m_23 * m.m_42),
-            .m_14 = -m.m_12 * (m.m_23 * m.m_34 - m.m_24 * m.m_33) + m.m_13 * (m.m_22 * m.m_34 - m.m_24 * m.m_32) - m.m_14 * (m.m_22 * m.m_33 - m.m_23 * m.m_32),
+        .m_12 = -m.m_12 * (m.m_33 * m.m_44 - m.m_34 * m.m_43) + m.m_13 * (m.m_32 * m.m_44 - m.m_34 * m.m_42) - m.m_14 * (m.m_32 * m.m_43 - m.m_33 * m.m_42),
+        .m_13 = m.m_12 * (m.m_23 * m.m_44 - m.m_24 * m.m_43) - m.m_13 * (m.m_22 * m.m_44 - m.m_24 * m.m_42) + m.m_14 * (m.m_22 * m.m_43 - m.m_23 * m.m_42),
+        .m_14 = -m.m_12 * (m.m_23 * m.m_34 - m.m_24 * m.m_33) + m.m_13 * (m.m_22 * m.m_34 - m.m_24 * m.m_32) - m.m_14 * (m.m_22 * m.m_33 - m.m_23 * m.m_32),
 
-            .m_21 = -m.m_21 * (m.m_33 * m.m_44 - m.m_34 * m.m_43) + m.m_23 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) - m.m_24 * (m.m_31 * m.m_43 - m.m_33 * m.m_41),
-            .m_22 = m.m_11 * (m.m_33 * m.m_44 - m.m_34 * m.m_43) - m.m_13 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) + m.m_14 * (m.m_31 * m.m_43 - m.m_33 * m.m_41),
-            .m_23 = -m.m_11 * (m.m_23 * m.m_44 - m.m_24 * m.m_43) + m.m_13 * (m.m_21 * m.m_44 - m.m_24 * m.m_41) - m.m_14 * (m.m_21 * m.m_43 - m.m_23 * m.m_41),
-            .m_24 = m.m_11 * (m.m_23 * m.m_34 - m.m_24 * m.m_33) - m.m_13 * (m.m_21 * m.m_34 - m.m_24 * m.m_31) + m.m_14 * (m.m_21 * m.m_33 - m.m_23 * m.m_31),
+        .m_21 = -m.m_21 * (m.m_33 * m.m_44 - m.m_34 * m.m_43) + m.m_23 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) - m.m_24 * (m.m_31 * m.m_43 - m.m_33 * m.m_41),
+        .m_22 = m.m_11 * (m.m_33 * m.m_44 - m.m_34 * m.m_43) - m.m_13 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) + m.m_14 * (m.m_31 * m.m_43 - m.m_33 * m.m_41),
+        .m_23 = -m.m_11 * (m.m_23 * m.m_44 - m.m_24 * m.m_43) + m.m_13 * (m.m_21 * m.m_44 - m.m_24 * m.m_41) - m.m_14 * (m.m_21 * m.m_43 - m.m_23 * m.m_41),
+        .m_24 = m.m_11 * (m.m_23 * m.m_34 - m.m_24 * m.m_33) - m.m_13 * (m.m_21 * m.m_34 - m.m_24 * m.m_31) + m.m_14 * (m.m_21 * m.m_33 - m.m_23 * m.m_31),
 
-            .m_31 = m.m_21 * (m.m_32 * m.m_44 - m.m_34 * m.m_42) - m.m_22 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) + m.m_24 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
-            .m_32 = -m.m_11 * (m.m_32 * m.m_44 - m.m_34 * m.m_42) + m.m_12 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) - m.m_14 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
-            .m_33 = m.m_11 * (m.m_22 * m.m_44 - m.m_24 * m.m_42) - m.m_12 * (m.m_21 * m.m_44 - m.m_24 * m.m_41) + m.m_14 * (m.m_21 * m.m_42 - m.m_22 * m.m_41),
-            .m_34 = -m.m_11 * (m.m_22 * m.m_34 - m.m_24 * m.m_32) + m.m_12 * (m.m_21 * m.m_34 - m.m_24 * m.m_31) - m.m_14 * (m.m_21 * m.m_32 - m.m_22 * m.m_31),
+        .m_31 = m.m_21 * (m.m_32 * m.m_44 - m.m_34 * m.m_42) - m.m_22 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) + m.m_24 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
+        .m_32 = -m.m_11 * (m.m_32 * m.m_44 - m.m_34 * m.m_42) + m.m_12 * (m.m_31 * m.m_44 - m.m_34 * m.m_41) - m.m_14 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
+        .m_33 = m.m_11 * (m.m_22 * m.m_44 - m.m_24 * m.m_42) - m.m_12 * (m.m_21 * m.m_44 - m.m_24 * m.m_41) + m.m_14 * (m.m_21 * m.m_42 - m.m_22 * m.m_41),
+        .m_34 = -m.m_11 * (m.m_22 * m.m_34 - m.m_24 * m.m_32) + m.m_12 * (m.m_21 * m.m_34 - m.m_24 * m.m_31) - m.m_14 * (m.m_21 * m.m_32 - m.m_22 * m.m_31),
 
-            .m_41 = -m.m_21 * (m.m_32 * m.m_43 - m.m_33 * m.m_42) + m.m_22 * (m.m_31 * m.m_43 - m.m_33 * m.m_41) - m.m_23 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
-            .m_42 = m.m_11 * (m.m_32 * m.m_43 - m.m_33 * m.m_42) - m.m_12 * (m.m_31 * m.m_43 - m.m_33 * m.m_41) + m.m_13 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
-            .m_43 = -m.m_11 * (m.m_22 * m.m_43 - m.m_23 * m.m_42) + m.m_12 * (m.m_21 * m.m_43 - m.m_23 * m.m_41) - m.m_13 * (m.m_21 * m.m_42 - m.m_22 * m.m_41),
-            .m_44 = m.m_11 * (m.m_22 * m.m_33 - m.m_23 * m.m_32) - m.m_12 * (m.m_21 * m.m_33 - m.m_23 * m.m_31) + m.m_13 * (m.m_21 * m.m_32 - m.m_22 * m.m_31)
+        .m_41 = -m.m_21 * (m.m_32 * m.m_43 - m.m_33 * m.m_42) + m.m_22 * (m.m_31 * m.m_43 - m.m_33 * m.m_41) - m.m_23 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
+        .m_42 = m.m_11 * (m.m_32 * m.m_43 - m.m_33 * m.m_42) - m.m_12 * (m.m_31 * m.m_43 - m.m_33 * m.m_41) + m.m_13 * (m.m_31 * m.m_42 - m.m_32 * m.m_41),
+        .m_43 = -m.m_11 * (m.m_22 * m.m_43 - m.m_23 * m.m_42) + m.m_12 * (m.m_21 * m.m_43 - m.m_23 * m.m_41) - m.m_13 * (m.m_21 * m.m_42 - m.m_22 * m.m_41),
+        .m_44 = m.m_11 * (m.m_22 * m.m_33 - m.m_23 * m.m_32) - m.m_12 * (m.m_21 * m.m_33 - m.m_23 * m.m_31) + m.m_13 * (m.m_21 * m.m_32 - m.m_22 * m.m_31)
     };
 }
 
@@ -223,12 +223,12 @@ Matrix4x4 matrix4x4_multiply(Matrix4x4 a, Matrix4x4 b) {
     };
 }
 
-Matrix4x4 matrix4x4_scale(Matrix4x4 m, float scalar) {
+Matrix4x4 matrix4x4_scale(Matrix4x4 m, float s) {
     return (Matrix4x4) {
-        .m_11 = m.m_11 * scalar, .m_12 = m.m_12 * scalar, .m_13 = m.m_13 * scalar, .m_14 = m.m_14 * scalar,
-        .m_21 = m.m_21 * scalar, .m_22 = m.m_22 * scalar, .m_23 = m.m_23 * scalar, .m_24 = m.m_24 * scalar,
-        .m_31 = m.m_31 * scalar, .m_32 = m.m_32 * scalar, .m_33 = m.m_33 * scalar, .m_34 = m.m_34 * scalar,
-        .m_41 = m.m_41 * scalar, .m_42 = m.m_42 * scalar, .m_43 = m.m_43 * scalar, .m_44 = m.m_44 * scalar
+        .m_11 = m.m_11 * s, .m_12 = m.m_12 * s, .m_13 = m.m_13 * s, .m_14 = m.m_14 * s,
+        .m_21 = m.m_21 * s, .m_22 = m.m_22 * s, .m_23 = m.m_23 * s, .m_24 = m.m_24 * s,
+        .m_31 = m.m_31 * s, .m_32 = m.m_32 * s, .m_33 = m.m_33 * s, .m_34 = m.m_34 * s,
+        .m_41 = m.m_41 * s, .m_42 = m.m_42 * s, .m_43 = m.m_43 * s, .m_44 = m.m_44 * s
     };
 }
 
