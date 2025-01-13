@@ -1,11 +1,9 @@
 #include "camera.h"
 
 void camera_init_euler_angles(Camera* camera, float yaw, float pitch, float roll, Vector3 position) {
-    Quaternion yaw_quaternion = quaternion_angle_axis(yaw, vector3_unit_y);
-    Quaternion pitch_quaternion = quaternion_angle_axis(pitch, vector3_unit_x);
-    Quaternion roll_quaternion = quaternion_angle_axis(roll, vector3_unit_z);
-
-    camera->rotation = quaternion_multiply(yaw_quaternion, quaternion_multiply(pitch_quaternion, roll_quaternion));
+    camera->rotation = quaternion_multiply(
+        quaternion_angle_axis(yaw, vector3_unit_y),
+        quaternion_multiply(quaternion_angle_axis(pitch, vector3_unit_x), quaternion_angle_axis(roll, vector3_unit_z)));
     camera->position = position;
 }
 
@@ -15,18 +13,15 @@ void camera_init_quaternion(Camera* camera, Quaternion rotation, Vector3 positio
 }
 
 void camera_yaw(Camera* camera, float angle) {
-    Quaternion yaw = quaternion_angle_axis(angle, vector3_unit_y);
-    camera->rotation = quaternion_multiply(yaw, camera->rotation);
+    camera->rotation = quaternion_multiply(quaternion_angle_axis(angle, vector3_unit_y), camera->rotation);
 }
 
 void camera_pitch(Camera* camera, float angle) {
-    Quaternion pitch = quaternion_angle_axis(angle, vector3_unit_x);
-    camera->rotation = quaternion_multiply(pitch, camera->rotation);
+    camera->rotation = quaternion_multiply(quaternion_angle_axis(angle, vector3_unit_x), camera->rotation);
 }
 
 void camera_roll(Camera* camera, float angle) {
-    Quaternion roll = quaternion_angle_axis(angle, vector3_unit_z);
-    camera->rotation = quaternion_multiply(roll, camera->rotation);
+    camera->rotation = quaternion_multiply(quaternion_angle_axis(angle, vector3_unit_z), camera->rotation);
 }
 
 Quaternion camera_get_rotation(Camera* camera) {
