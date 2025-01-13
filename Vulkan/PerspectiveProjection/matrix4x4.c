@@ -277,10 +277,7 @@ Matrix4x4 matrix4x4_from_quaternion_vector3(Quaternion q, Vector3 v) {
     float wy = q.w * q.y;
     float wz = q.w * q.z;
 
-    q = quaternion_normalize(q);
-    Quaternion q_conj = quaternion_conjugate(q);
-    Quaternion translation = {0, -v.x, -v.y, -v.z};
-    Quaternion t = quaternion_multiply(quaternion_multiply(q_conj, translation), q);
+    Vector3 t = quaternion_rotate_vector(quaternion_conjugate(quaternion_normalize(q)), vector3_negate(v));
 
     return (Matrix4x4) {
         .m_11 = 1.0f - 2.0f * (yy + zz),
