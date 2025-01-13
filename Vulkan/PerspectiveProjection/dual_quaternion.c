@@ -57,10 +57,8 @@ DualQuaternion dual_quaternion_conjugate(DualQuaternion dq) {
 }
 
 DualQuaternion dual_quaternion_normalize(DualQuaternion dq) {
-    float mag = quaternion_magnitude(dq.real);
-
     return (DualQuaternion) {
         .real = quaternion_normalize(dq.real),
-        .dual = quaternion_scale(dq.dual, 1.0f / mag)
+        .dual = quaternion_scale(dq.dual, 1.0f / quaternion_magnitude(dq.real))
     };
 }
