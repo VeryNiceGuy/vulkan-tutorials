@@ -72,7 +72,6 @@ struct MVP {
 };
 
 struct MVP mvp;
-struct Vector3 eye = { .x = 0, .y = 0, .z = -5.0f };
 Camera camera;
 
 VkPipelineCache pipelineCache;
@@ -166,14 +165,7 @@ void createDescriptorSet() {
 void createUniformBuffers() {
     mvp = (struct MVP){
         .model = matrix4x4_create_identity(),
-        .view = matrix4x4_create_look_at_lh(
-            eye,
-            (Vector3) {
-                .x = 0.0f, .y = 0.0f, .z = 0.0f
-            },
-            (Vector3) {
-                .x = 0.0f, .y = 1.0f, .z = 0.0f
-            }),
+        .view = (Matrix4x4){0},
         .proj = matrix4x4_perspective_fov_lh_gl(0.785398f, 800.0f / 600.0f, 0.1f, 100.0f)
     };
 
@@ -202,15 +194,6 @@ void createUniformBuffers() {
 }
 
 void updateUniformBuffer(uint32_t currentFrame) {
-    mvp.view = matrix4x4_create_look_at_lh(
-        eye,
-        (Vector3) {
-        .x = 0.0f, .y = 0.0f, .z = 1.0f
-    },
-        (Vector3) {
-        .x = 0.0f, .y = 1.0f, .z = 0.0f
-    });
-
     mvp.view = camera_calculate_view_matrix(&camera);
 
     void* data;
@@ -346,7 +329,9 @@ void createInstance() {
 
     const char* desiredExtensions[] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
-        VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+        VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+        VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
+        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME
     };
 
     const char* validationLayers[] = {

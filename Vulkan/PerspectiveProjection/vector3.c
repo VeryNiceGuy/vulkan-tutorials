@@ -15,11 +15,11 @@ float vector3_magnitude(Vector3 v) {
     return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
-Vector3 vector3_add(Vector3 v1, Vector3 v2) {
+Vector3 vector3_add(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = v1.x + v2.x,
-        .y = v1.y + v2.y,
-        .z = v1.z + v2.z
+        .x = a.x + b.x,
+        .y = a.y + b.y,
+        .z = a.z + b.z
     };
 }
 
@@ -31,11 +31,11 @@ Vector3 vector3_add_scalar(Vector3 v, float s) {
     };
 }
 
-Vector3 vector3_subtract(Vector3 v1, Vector3 v2) {
+Vector3 vector3_subtract(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = v1.x - v2.x,
-        .y = v1.y - v2.y,
-        .z = v1.z - v2.z
+        .x = a.x - b.x,
+        .y = a.y - b.y,
+        .z = a.z - b.z
     };
 }
 
@@ -47,11 +47,11 @@ Vector3 vector3_subtract_scalar(Vector3 v, float s) {
     };
 }
 
-Vector3 vector3_multiply(Vector3 v1, Vector3 v2) {
+Vector3 vector3_multiply(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = v1.x * v2.x,
-        .y = v1.y * v2.y,
-        .z = v1.z * v2.z
+        .x = a.x * b.x,
+        .y = a.y * b.y,
+        .z = a.z * b.z
     };
 }
 
@@ -63,11 +63,11 @@ Vector3 vector3_scale(Vector3 v, float s) {
     };
 }
 
-Vector3 vector3_divide(Vector3 v1, Vector3 v2) {
+Vector3 vector3_divide(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = v1.x / v2.x,
-        .y = v1.y / v2.y,
-        .z = v1.z / v2.z
+        .x = a.x / b.x,
+        .y = a.y / b.y,
+        .z = a.z / b.z
     };
 }
 
@@ -79,42 +79,42 @@ Vector3 vector3_divide_scalar(Vector3 v, float s) {
     };
 }
 
-Vector3 vector3_cross(Vector3 v1, Vector3 v2) {
+Vector3 vector3_cross(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = v1.y * v2.z - v1.z * v2.y,
-        .y = v1.z * v2.x - v1.x * v2.z,
-        .z = v1.x * v2.y - v1.y * v2.x
+        .x = a.y * b.z - a.z * b.y,
+        .y = a.z * b.x - a.x * b.z,
+        .z = a.x * b.y - a.y * b.x
     };
 }
 
-float vector3_dot(Vector3 v1, Vector3 v2) {
-    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+float vector3_dot(Vector3 a, Vector3 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-float vector3_distance_to(Vector3 v1, Vector3 v2) {
+float vector3_distance_to(Vector3 a, Vector3 b) {
     return sqrtf(
-        (v1.x - v2.x) * (v1.x - v2.x)
-        + (v1.y - v2.y) * (v1.y - v2.y)
-        + (v1.z - v2.z) * (v1.z - v2.z));
+        (a.x - b.x) * (a.x - b.x)
+        + (a.y - b.y) * (a.y - b.y)
+        + (a.z - b.z) * (a.z - b.z));
 }
 
-float vector3_angle_between(Vector3 v1, Vector3 v2) {
-    float dotProduct = vector3_dot(v1, v2);
-    float magnitudes = vector3_magnitude(v1) * vector3_magnitude(v2);
+float vector3_angle_between(Vector3 a, Vector3 b) {
+    float dotProduct = vector3_dot(a, b);
+    float magnitudes = vector3_magnitude(a) * vector3_magnitude(b);
 
     return acosf(dotProduct / magnitudes);
 }
 
-float vector3_angle_to(Vector3 v1, Vector3 v2) {
-    return atan2f(vector3_magnitude(vector3_cross(v1, v2)), vector3_dot(v1, v2));
+float vector3_angle_to(Vector3 a, Vector3 b) {
+    return atan2f(vector3_magnitude(vector3_cross(a, b)), vector3_dot(a, b));
 }
 
 Vector3 vector3_reflect(Vector3 v, Vector3 normal) {
     return vector3_subtract(v, vector3_scale(normal, 2 * vector3_dot(v, normal)));
 }
 
-Vector3 vector3_lerp(Vector3 v1, Vector3 v2, float t) {
-    return vector3_add(vector3_scale(v1, 1.0f - t), vector3_scale(v2, t));
+Vector3 vector3_lerp(Vector3 a, Vector3 b, float t) {
+    return vector3_add(vector3_scale(a, 1.0f - t), vector3_scale(b, t));
 }
 
 Vector3 vector3_clamp(Vector3 v, Vector3 min, Vector3 max) {
@@ -125,27 +125,27 @@ Vector3 vector3_clamp(Vector3 v, Vector3 min, Vector3 max) {
     };
 }
 
-Vector3 vector3_midpoint(Vector3 v1, Vector3 v2) {
+Vector3 vector3_midpoint(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = (v1.x + v2.x) / 2.0f,
-        .y = (v1.y + v2.y) / 2.0f,
-        .z = (v1.z + v2.z) / 2.0f
+        .x = (a.x + b.x) / 2.0f,
+        .y = (a.y + b.y) / 2.0f,
+        .z = (a.z + b.z) / 2.0f
     };
 }
 
-Vector3 vector3_project_onto(Vector3 v1, Vector3 v2) {
-    float dotProduct = vector3_dot(v1, v2);
-    float otherMagnitudeSquared = vector3_magnitude(v2) * vector3_magnitude(v2);
+Vector3 vector3_project_onto(Vector3 a, Vector3 b) {
+    float dotProduct = vector3_dot(a, b);
+    float otherMagnitudeSquared = vector3_magnitude(b) * vector3_magnitude(b);
 
-    return vector3_scale(v2, dotProduct / otherMagnitudeSquared);
+    return vector3_scale(b, dotProduct / otherMagnitudeSquared);
 }
 
-Vector3 vector3_perpendicular_to(Vector3 v1, Vector3 v2) {
-    return vector3_subtract(v1, vector3_project_onto(v1, v2));
+Vector3 vector3_perpendicular_to(Vector3 a, Vector3 b) {
+    return vector3_subtract(a, vector3_project_onto(a, b));
 }
 
-float vector3_triple_product(Vector3 v, Vector3 v1, Vector3 v2) {
-    return vector3_dot(v, vector3_cross(v1, v2));
+float vector3_triple_product(Vector3 a, Vector3 b, Vector3 c) {
+    return vector3_dot(a, vector3_cross(b, c));
 }
 
 Vector3 vector3_rotate_around_axis(Vector3 v, Vector3 axis, float angle) {
@@ -232,19 +232,19 @@ Vector3 vector3_sqrt(Vector3 v) {
     };
 }
 
-Vector3 vector3_min(Vector3 v1, Vector3 v2) {
+Vector3 vector3_min(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = fminf(v1.x, v2.x),
-        .y = fminf(v1.y, v2.y),
-        .z = fminf(v1.z, v2.z)
+        .x = fminf(a.x, b.x),
+        .y = fminf(a.y, b.y),
+        .z = fminf(a.z, b.z)
     };
 }
 
-Vector3 vector3_max(Vector3 v1, Vector3 v2) {
+Vector3 vector3_max(Vector3 a, Vector3 b) {
     return (Vector3) {
-        .x = fmaxf(v1.x, v2.x),
-        .y = fmaxf(v1.y, v2.y),
-        .z = fmaxf(v1.z, v2.z)
+        .x = fmaxf(a.x, b.x),
+        .y = fmaxf(a.y, b.y),
+        .z = fmaxf(a.z, b.z)
     };
 }
 

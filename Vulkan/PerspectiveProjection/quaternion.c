@@ -29,12 +29,12 @@ Quaternion quaternion_multiply(Quaternion a, Quaternion b) {
     };
 }
 
-Quaternion quaternion_scale(Quaternion q, float scalar) {
+Quaternion quaternion_scale(Quaternion q, float s) {
     return (Quaternion) {
-        .w = q.w * scalar,
-        .x = q.x * scalar,
-        .y = q.y * scalar,
-        .z = q.z * scalar
+        .w = q.w * s,
+        .x = q.x * s,
+        .y = q.y * s,
+        .z = q.z * s
     };
 }
 
