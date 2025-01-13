@@ -8,7 +8,7 @@ typedef struct Quaternion {
 Quaternion quaternion_add(Quaternion a, Quaternion b);
 Quaternion quaternion_subtract(Quaternion a, Quaternion b);
 Quaternion quaternion_multiply(Quaternion a, Quaternion b);
-Quaternion quaternion_multiply_scalar(Quaternion q, float s);
+Quaternion quaternion_scale(Quaternion q, float s);
 float quaternion_magnitude(Quaternion q);
 Quaternion quaternion_normalize(Quaternion q);
 Quaternion quaternion_conjugate(Quaternion q);

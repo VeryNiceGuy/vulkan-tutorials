@@ -53,7 +53,7 @@ Vector3 camera_get_direction(Camera* camera) {
 }
 
 void camera_move(Camera* camera, float step) {
-    camera_translate(camera, vector3_multiply_scalar(camera_get_direction(camera), step));
+    camera_translate(camera, vector3_scale(camera_get_direction(camera), step));
 }
 
 Matrix4x4 camera_calculate_view_matrix(Camera* camera) {

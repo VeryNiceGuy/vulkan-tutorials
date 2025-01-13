@@ -55,7 +55,7 @@ Vector3 vector3_multiply(Vector3 v1, Vector3 v2) {
     };
 }
 
-Vector3 vector3_multiply_scalar(Vector3 v, float s) {
+Vector3 vector3_scale(Vector3 v, float s) {
     return (Vector3) {
         .x = v.x * s,
         .y = v.y * s,
@@ -110,11 +110,11 @@ float vector3_angle_to(Vector3 v1, Vector3 v2) {
 }
 
 Vector3 vector3_reflect(Vector3 v, Vector3 normal) {
-    return vector3_subtract(v, vector3_multiply_scalar(normal, 2 * vector3_dot(v, normal)));
+    return vector3_subtract(v, vector3_scale(normal, 2 * vector3_dot(v, normal)));
 }
 
 Vector3 vector3_lerp(Vector3 v1, Vector3 v2, float t) {
-    return vector3_add(vector3_multiply_scalar(v1, 1.0f - t), vector3_multiply_scalar(v2, t));
+    return vector3_add(vector3_scale(v1, 1.0f - t), vector3_scale(v2, t));
 }
 
 Vector3 vector3_clamp(Vector3 v, Vector3 min, Vector3 max) {
@@ -137,7 +137,7 @@ Vector3 vector3_project_onto(Vector3 v1, Vector3 v2) {
     float dotProduct = vector3_dot(v1, v2);
     float otherMagnitudeSquared = vector3_magnitude(v2) * vector3_magnitude(v2);
 
-    return vector3_multiply_scalar(v2, dotProduct / otherMagnitudeSquared);
+    return vector3_scale(v2, dotProduct / otherMagnitudeSquared);
 }
 
 Vector3 vector3_perpendicular_to(Vector3 v1, Vector3 v2) {
@@ -154,8 +154,8 @@ Vector3 vector3_rotate_around_axis(Vector3 v, Vector3 axis, float angle) {
     float sinAngle = sinf(angle);
 
     return vector3_add(
-        vector3_add(vector3_multiply_scalar(v, cosAngle), vector3_multiply_scalar(vector3_cross(normalizedAxis, v), sinAngle)),
-        vector3_multiply_scalar(normalizedAxis, vector3_dot(normalizedAxis, v) * (1.0f - cosAngle))
+        vector3_add(vector3_scale(v, cosAngle), vector3_scale(vector3_cross(normalizedAxis, v), sinAngle)),
+        vector3_scale(normalizedAxis, vector3_dot(normalizedAxis, v) * (1.0f - cosAngle))
     );
 }
 

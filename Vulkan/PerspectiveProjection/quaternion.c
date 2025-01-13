@@ -29,7 +29,7 @@ Quaternion quaternion_multiply(Quaternion a, Quaternion b) {
     };
 }
 
-Quaternion quaternion_multiply_scalar(Quaternion q, float scalar) {
+Quaternion quaternion_scale(Quaternion q, float scalar) {
     return (Quaternion) {
         .w = q.w * scalar,
         .x = q.x * scalar,

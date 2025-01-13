@@ -15,7 +15,7 @@ Vector3 vector3_add_scalar(Vector3 v, float s);
 Vector3 vector3_subtract(Vector3 v1, Vector3 v2);
 Vector3 vector3_subtract_scalar(Vector3 v, float s);
 Vector3 vector3_multiply(Vector3 v1, Vector3 v2);
-Vector3 vector3_multiply_scalar(Vector3 v, float s);
+Vector3 vector3_scale(Vector3 v, float s);
 Vector3 vector3_divide(Vector3 v1, Vector3 v2);
 Vector3 vector3_divide_scalar(Vector3 v, float s);
 Vector3 vector3_cross(Vector3 v1, Vector3 v2);

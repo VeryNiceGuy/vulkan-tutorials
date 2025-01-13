@@ -223,7 +223,7 @@ Matrix4x4 matrix4x4_multiply(Matrix4x4 a, Matrix4x4 b) {
     };
 }
 
-Matrix4x4 matrix4x4_multiply_scalar(Matrix4x4 m, float scalar) {
+Matrix4x4 matrix4x4_scale(Matrix4x4 m, float scalar) {
     return (Matrix4x4) {
         .m_11 = m.m_11 * scalar, .m_12 = m.m_12 * scalar, .m_13 = m.m_13 * scalar, .m_14 = m.m_14 * scalar,
         .m_21 = m.m_21 * scalar, .m_22 = m.m_22 * scalar, .m_23 = m.m_23 * scalar, .m_24 = m.m_24 * scalar,

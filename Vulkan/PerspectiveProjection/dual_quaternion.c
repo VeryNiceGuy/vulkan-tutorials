@@ -5,7 +5,7 @@
 DualQuaternion dual_quaternion_create(Quaternion rotation, Vector3 translation) {
     DualQuaternion dq = {
         .real = rotation,
-        .dual = quaternion_multiply_scalar(
+        .dual = quaternion_scale(
             quaternion_multiply((Quaternion) {
                 .w = 0.0f,
                 .x = translation.x,
@@ -17,7 +17,7 @@ DualQuaternion dual_quaternion_create(Quaternion rotation, Vector3 translation) 
 }
 
 Vector3 dual_quaternion_get_translation(DualQuaternion dq) {
-    Quaternion q = quaternion_multiply_scalar(quaternion_multiply(dq.dual, quaternion_conjugate(dq.real)), 2.0f);
+    Quaternion q = quaternion_scale(quaternion_multiply(dq.dual, quaternion_conjugate(dq.real)), 2.0f);
     return (Vector3) { .x = q.x, .y = q.y, .z = q.z };
 }
 
@@ -42,10 +42,10 @@ DualQuaternion dual_quaternion_multiply(DualQuaternion a, DualQuaternion b) {
     };
 }
 
-DualQuaternion dual_quaternion_multiply_scalar(DualQuaternion dq, float scalar) {
+DualQuaternion dual_quaternion_scale(DualQuaternion dq, float scalar) {
     return (DualQuaternion) {
-        .real = quaternion_multiply_scalar(dq.real, scalar),
-        .dual = quaternion_multiply_scalar(dq.dual, scalar)
+        .real = quaternion_scale(dq.real, scalar),
+        .dual = quaternion_scale(dq.dual, scalar)
     };
 }
 
@@ -61,6 +61,6 @@ DualQuaternion dual_quaternion_normalize(DualQuaternion dq) {
 
     return (DualQuaternion) {
         .real = quaternion_normalize(dq.real),
-        .dual = quaternion_multiply_scalar(dq.dual, 1.0f / mag)
+        .dual = quaternion_scale(dq.dual, 1.0f / mag)
     };
 }
