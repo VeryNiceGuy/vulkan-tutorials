@@ -2,25 +2,59 @@
 #include <windowsx.h>
 #include "perspective_projection.h"
 
+bool fullscreen = false;
 int prevMouseX = 0;
 int prevMouseY = 0;
 int deltaX = 0;
 int deltaY = 0;
 
+/*
+void switchToFullscreen(HWND hwnd, int width, int height) {
+    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    style &= ~WS_OVERLAPPEDWINDOW;
+    style |= WS_POPUP;
+
+    SetWindowLong(hwnd, GWL_STYLE, style);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+    ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+}
+
+void restoreWindowed(HWND hwnd) {
+    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    style |= WS_OVERLAPPEDWINDOW;
+    style &= ~WS_POPUP;
+
+    SetWindowLong(hwnd, GWL_STYLE, style);
+    SetWindowPos(hwnd, NULL, 100, 100, 800, 600, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+    ShowWindow(hwnd, SW_SHOWNORMAL);
+}*/
+
+void RegisterRawInput(HWND hwnd) {
+    RAWINPUTDEVICE rid;
+    rid.usUsagePage = 0x01;
+    rid.usUsage = 0x02;
+    rid.dwFlags = RIDEV_INPUTSINK;
+    rid.hwndTarget = hwnd;
+
+    RegisterRawInputDevices(&rid, 1, sizeof(rid));
+}
+
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
-    case WM_MOUSEMOVE: {
-        int mouseX = GET_X_LPARAM(lParam);
-        int mouseY = GET_Y_LPARAM(lParam);
+    case WM_INPUT: {
+        BYTE lpb[128];
+        PUINT pcbSize;
+        GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb, &pcbSize, sizeof(RAWINPUTHEADER));
 
-        deltaX = mouseX - prevMouseX;
-        deltaY = mouseY - prevMouseY;
+        RAWINPUT* raw = (RAWINPUT*)lpb;
+        if (raw->header.dwType == RIM_TYPEMOUSE) {
+            int deltaX = raw->data.mouse.lLastX;
+            int deltaY = raw->data.mouse.lLastY;
 
-        prevMouseX = mouseX;
-        prevMouseY = mouseY;
-
-        mouseMove(deltaX, deltaY);
-        break;
+            mouseMove(deltaX, deltaY);
+        }
+        return 0;
     }
     case WM_KEYDOWN:
         switch (wParam) {
@@ -35,6 +69,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             break;
         case VK_DOWN:
             moveBackward();
+            break;
+        case VK_SPACE:
+            enableFullScreen();
+            /*if (!fullscreen) {
+                switchToFullscreen(hWnd, 1920, 1080);
+                fullscreen = true;
+            }
+            else {
+                restoreWindowed(hWnd);
+                fullscreen = false;
+            }*/
             break;
         default:
             break;
@@ -65,6 +110,8 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, WIDTH, HEIGHT,
         NULL, NULL, hInst, NULL);
+
+    RegisterRawInput(hWnd);
 
     ShowWindow(hWnd, SW_SHOW);
     initialize(hInst, hWnd);

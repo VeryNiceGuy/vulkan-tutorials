@@ -17,3 +17,5 @@ void moveLeft();
 void moveRight();
 void moveBackward();
 void mouseMove(float x, float y);
+
+void enableFullScreen();

@@ -3,11 +3,12 @@
 #include "matrix4x4.h"
 #include "camera.h"
 
+HWND windowHandle;
 VkInstance instance;
 VkDevice device;
 VkPhysicalDevice physicalDevice;
 VkSurfaceKHR surface;
-VkSwapchainKHR swapchain;
+VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 
 VkFormat swapChainFormat;
 uint32_t swapchainImageCount;
@@ -47,6 +48,9 @@ VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
 
 size_t currentFrame = 0;
 
+float width = 800;
+float height = 600;
+
 struct Vertex {
     float x, y, z;
 };
@@ -83,6 +87,58 @@ VkDescriptorPool descriptorPool;
 VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
 
 VkDebugUtilsMessengerEXT debugMessenger;
+
+PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT2;
+
+void destroySwapchain() {
+    vkDestroySwapchainKHR(device, swapchain, NULL);
+    swapchain = VK_NULL_HANDLE;
+    free(swapchainImages);
+    swapchainImages = NULL;
+}
+
+void destroyImageViews() {
+    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
+        vkDestroyImageView(device, imageViews[i], NULL);
+    }
+    free(imageViews);
+    imageViews = VK_NULL_HANDLE;
+}
+
+void destroyFramebuffers() {
+    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
+        vkDestroyFramebuffer(device, framebuffers[i], NULL);
+    }
+    free(framebuffers);
+    framebuffers = VK_NULL_HANDLE;
+}
+
+void destroyCommandBuffers() {
+    vkDestroyCommandPool(device, commandPool, NULL);
+    free(commandBuffers);
+    commandBuffers = VK_NULL_HANDLE;
+}
+
+void createImageViews() {
+    imageViews = malloc(sizeof(VkImageView) * swapchainImageCount);
+    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
+        VkImageViewCreateInfo imageViewCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = swapchainImages[i],
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = swapChainFormat,
+            .subresourceRange = {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1
+            }
+        };
+
+        vkCreateImageView(device, &imageViewCreateInfo, NULL, &imageViews[i]);
+    }
+}
 
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
@@ -205,7 +261,8 @@ void updateUniformBuffer(uint32_t currentFrame) {
 void createLogicalDevice() {
     float queuePriority = 1.0f;
     const char* deviceExtensions[] = {
-        "VK_KHR_swapchain"
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
     };
 
     VkDeviceQueueCreateInfo deviceQueueCreateInfos[2] = { {
@@ -226,10 +283,12 @@ void createLogicalDevice() {
         .pQueueCreateInfos = deviceQueueCreateInfos,
         .queueCreateInfoCount = graphicsQueueFamilyIndex != presentQueueFamilyIndex ? 2 : 1,
         .ppEnabledExtensionNames = deviceExtensions,
-        .enabledExtensionCount = 1
+        .enabledExtensionCount = 2
     };
 
-    vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device);
+    VkResult res = vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device);
+    vkAcquireFullScreenExclusiveModeEXT2 = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkGetDeviceProcAddr(device, "vkAcquireFullScreenExclusiveModeEXT");
+
     vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
 
     if (graphicsQueueFamilyIndex != presentQueueFamilyIndex) {
@@ -342,7 +401,7 @@ void createInstance() {
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pApplicationInfo = &applicationInfo,
         .ppEnabledExtensionNames = desiredExtensions,
-        .enabledExtensionCount = 2,
+        .enabledExtensionCount = 4,
         .ppEnabledLayerNames = validationLayers,
         .enabledLayerCount = 1
     };
@@ -384,6 +443,11 @@ void createRenderPass() {
     };
 
     vkCreateRenderPass(device, &renderPassCreateInfo, NULL, &renderPass);
+}
+
+void destroyRenderPass() {
+    vkDestroyRenderPass(device, renderPass, NULL);
+    renderPass = VK_NULL_HANDLE;
 }
 
 void createVertexBuffer() {
@@ -555,6 +619,14 @@ void createPipeline() {
         .pScissors = &scissor
     };
 
+    VkDynamicState dynamics[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
+    VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pDynamicStates = dynamics,
+        .dynamicStateCount = 2
+    };
+
     VkPipelineLayoutCreateInfo layoutCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
         .setLayoutCount = MAX_FRAMES_IN_FLIGHT,
@@ -573,6 +645,7 @@ void createPipeline() {
         .pRasterizationState = &rasterizationStateCreateInfo,
         .pMultisampleState = &multisampleStateCreateInfo,
         .pColorBlendState = &colorBlendStateCreateInfo,
+        .pDynamicState = &dynamicStateCreateInfo,
         .renderPass = renderPass,
         .layout = pipelineLayout
     };
@@ -594,6 +667,106 @@ void createSurface(HINSTANCE hInstance, HWND hWnd) {
     };
 
     vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, NULL, &surface);
+}
+
+void destroySurface() {
+    vkDestroySurfaceKHR(instance, surface, NULL);
+    surface = VK_NULL_HANDLE;
+}
+
+void createFramebuffers() {
+    framebuffers = malloc(sizeof(VkFramebuffer) * swapchainImageCount);
+    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
+        VkImageView attachments[] = {
+            imageViews[i]
+        };
+
+        VkFramebufferCreateInfo framebufferCreateInfo = {
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .renderPass = renderPass,
+            .attachmentCount = 1,
+            .pAttachments = attachments,
+            .width = imageExtent.width,
+            .height = imageExtent.height,
+            .layers = 1
+        };
+
+        vkCreateFramebuffer(device, &framebufferCreateInfo, NULL, &framebuffers[i]);
+    }
+}
+
+void createCommandBuffers() {
+    VkCommandPoolCreateInfo poolCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .queueFamilyIndex = graphicsQueueFamilyIndex
+    };
+
+    vkCreateCommandPool(device, &poolCreateInfo, NULL, &commandPool);
+
+    commandBuffers = malloc(sizeof(VkCommandBuffer) * swapchainImageCount);
+    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = swapchainImageCount
+    };
+
+    vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers);
+
+    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
+        VkCommandBufferBeginInfo commandBufferBeginInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
+        };
+        VkResult ress = vkBeginCommandBuffer(commandBuffers[i], &commandBufferBeginInfo);
+
+        VkClearValue clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+        VkRenderPassBeginInfo renderPassBeginInfo = {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .renderPass = renderPass,
+            .framebuffer = framebuffers[i],
+            .renderArea = {.offset = {0, 0}, .extent = imageExtent },
+            .clearValueCount = 1,
+            .pClearValues = &clearColor
+        };
+
+        vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+        VkViewport viewport = {
+            .x = 0.0f,
+            .y = 0.0f,
+            .width = imageExtent.width,
+            .height = imageExtent.height,
+            .minDepth = 0.0f,
+            .maxDepth = 1.0f
+        };
+        vkCmdSetViewport(commandBuffers[i], 0, 1, &viewport);
+
+        VkRect2D scissor = {
+            .offset = { 0, 0 },
+            .extent = imageExtent
+        };
+        vkCmdSetScissor(commandBuffers[i], 0, 1, &scissor);
+
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer, offsets);
+        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, NULL);
+        vkCmdDrawIndexed(commandBuffers[i], sizeof(indices) / sizeof(uint32_t), 1, 0, 0, 0);
+        vkCmdEndRenderPass(commandBuffers[i]);
+        VkResult res = vkEndCommandBuffer(commandBuffers[i]);
+    }
+}
+
+void switchToFullscreen(HWND hwnd, int width, int height) {
+    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    style &= ~WS_OVERLAPPEDWINDOW;
+    style |= WS_POPUP;
+
+    SetWindowLong(hwnd, GWL_STYLE, style);
+    SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+    ShowWindow(hwnd, SW_SHOWMAXIMIZED);
 }
 
 void createSwapchain() {
@@ -632,8 +805,8 @@ void createSwapchain() {
     free(presentModes);
 
     if (capabilities.currentExtent.width == 0xFFFFFFFF) {
-        imageExtent.width = WIDTH;
-        imageExtent.height = HEIGHT;
+        imageExtent.width = width;
+        imageExtent.height = height;
 
         if (imageExtent.width < capabilities.minImageExtent.width) {
             imageExtent.width = capabilities.minImageExtent.width;
@@ -653,8 +826,20 @@ void createSwapchain() {
         imageExtent = capabilities.currentExtent;
     }
 
+    VkSurfaceFullScreenExclusiveWin32InfoEXT fullscreenExclusiveInfo = {
+        .sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT,
+        .pNext = NULL,
+        .hmonitor = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTONEAREST) };
+
+    VkSurfaceFullScreenExclusiveInfoEXT surfaceFullscreenExclusiveInfo = {
+        .sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT,
+        .pNext = &fullscreenExclusiveInfo,
+        .fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT
+    };
+
     VkSwapchainCreateInfoKHR swapchainCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = &surfaceFullscreenExclusiveInfo,
         .surface = surface,
         .minImageCount = capabilities.minImageCount,
         .imageFormat = surfaceFormat.format,
@@ -665,7 +850,10 @@ void createSwapchain() {
         .preTransform = capabilities.currentTransform,
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
         .presentMode = presentMode,
-        .clipped = VK_TRUE
+        .clipped = VK_TRUE,
+        .oldSwapchain = swapchain,
+        .pQueueFamilyIndices = NULL,
+        .queueFamilyIndexCount = 0
     };
 
     uint32_t queueFamilyIndices[] = { graphicsQueueFamilyIndex, presentQueueFamilyIndex };
@@ -679,102 +867,57 @@ void createSwapchain() {
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
 
-    vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &swapchain);
+    /*
+    VkSwapchainCreateInfoKHR swapchainCreateInfo = {
+    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+    .surface = surface, // Your Vulkan surface
+    .minImageCount = imageCount, // Number of images in the swapchain
+    .imageFormat = imageFormat, // Format of the swapchain images
+    .imageColorSpace = colorSpace, // Color space of the swapchain images
+    .imageExtent = { width, height }, // Extent of the swapchain images
+    .imageArrayLayers = 1, // Number of layers in each image
+    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, // Usage of the images
+    .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, // Use exclusive mode
+    .queueFamilyIndexCount = 0, // Number of queue families to share with
+    .pQueueFamilyIndices = NULL, // Array of queue family indices to share with (if any)
+    .preTransform = preTransform, // Transform to apply to the images
+    .compositeAlpha = compositeAlpha, // Alpha blending mode
+    .presentMode = presentMode, // Presentation mode
+    .clipped = VK_TRUE, // Whether to clip rendering outside the surface area
+    .oldSwapchain = oldSwapchain // Handle of the old swapchain (if any)
+    };*/
+
+    VkSwapchainKHR newSwapchain;
+    VkResult res = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &newSwapchain);
+
+    bool recreate = false;
+    if (swapchain != VK_NULL_HANDLE)
+    {
+        vkDeviceWaitIdle(device);
+        destroyCommandBuffers();
+        destroyFramebuffers();
+        destroyImageViews();
+        destroySwapchain();
+        SetWindowPos(windowHandle, NULL, 100, 100, 1000, 800, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+        recreate = true;
+    }
+    swapchain = newSwapchain;
 
     vkGetSwapchainImagesKHR(device, swapchain, &swapchainImageCount, NULL);
     swapchainImages = malloc(sizeof(VkImage) * swapchainImageCount);
     vkGetSwapchainImagesKHR(device, swapchain, &swapchainImageCount, swapchainImages);
 
-    imageViews = malloc(sizeof(VkImageView) * swapchainImageCount);
-    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
-        VkImageViewCreateInfo imageViewCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .image = swapchainImages[i],
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = surfaceFormat.format,
-            .subresourceRange = {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1
-            }
-        };
-
-        vkCreateImageView(device, &imageViewCreateInfo, NULL, &imageViews[i]);
+    if (recreate) {
+        createImageViews();
+        createFramebuffers();
+        createCommandBuffers();
+        
+        switchToFullscreen(windowHandle, 1920, 1080);
+        vkAcquireFullScreenExclusiveModeEXT2(device, swapchain);
     }
 }
 
-void createFramebuffers() {
-    VkCommandPoolCreateInfo poolCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .queueFamilyIndex = graphicsQueueFamilyIndex
-    };
-
-    vkCreateCommandPool(device, &poolCreateInfo, NULL, &commandPool);
-
-    framebuffers = malloc(sizeof(VkFramebuffer) * swapchainImageCount);
-    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
-        VkImageView attachments[] = {
-            imageViews[i]
-        };
-
-        VkFramebufferCreateInfo framebufferCreateInfo = {
-            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-            .renderPass = renderPass,
-            .attachmentCount = 1,
-            .pAttachments = attachments,
-            .width = imageExtent.width,
-            .height = imageExtent.height,
-            .layers = 1
-        };
-
-        vkCreateFramebuffer(device, &framebufferCreateInfo, NULL, &framebuffers[i]);
-    }
-}
-
-void createCommandBuffers() {
-    commandBuffers = malloc(sizeof(VkCommandBuffer) * swapchainImageCount);
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {
-        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-        .commandPool = commandPool,
-        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = swapchainImageCount
-    };
-
-    vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, commandBuffers);
-
-    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
-        VkCommandBufferBeginInfo commandBufferBeginInfo = {
-            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO
-        };
-        vkBeginCommandBuffer(commandBuffers[i], &commandBufferBeginInfo);
-
-        VkClearValue clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
-        VkRenderPassBeginInfo renderPassBeginInfo = {
-            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-            .renderPass = renderPass,
-            .framebuffer = framebuffers[i],
-            .renderArea = {.offset = {0, 0}, .extent = imageExtent },
-            .clearValueCount = 1,
-            .pClearValues = &clearColor
-        };
-
-        vkCmdBeginRenderPass(commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-        VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer, offsets);
-        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, NULL);
-        vkCmdDrawIndexed(commandBuffers[i], sizeof(indices) / sizeof(uint32_t), 1, 0, 0, 0);
-        vkCmdEndRenderPass(commandBuffers[i]);
-        vkEndCommandBuffer(commandBuffers[i]);
-    }
-}
-
-void createSemaphores() {
+void createSynchObjects() {
     VkSemaphoreCreateInfo semaphoreInfo = {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
     };
@@ -791,8 +934,21 @@ void createSemaphores() {
     }
 }
 
+void destroySynchObjects() {
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        vkDestroyFence(device, inFlightFences[i], NULL);
+        vkDestroySemaphore(device, imageAvailableSemaphores[i], NULL);
+        vkDestroySemaphore(device, renderFinishedSemaphores[i], NULL);
+    }
+}
+
 void initialize(HINSTANCE hInstance, HWND hWnd) {
-    camera_init_quaternion(&camera, (Quaternion) { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f }, (Vector3) { .x = 0, .y = 0, .z = -5 });
+    windowHandle = hWnd;
+
+    camera_init_quaternion(
+        &camera,
+        (Quaternion) { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f },
+        (Vector3) { .x = 0, .y = 0, .z = -5 });
 
     createInstance();
     createSurface(hInstance, hWnd);
@@ -800,6 +956,7 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
     getQueueFamilies();
     createLogicalDevice();
     createSwapchain();
+    createImageViews();
     createRenderPass();
     createDescriptorSetLayout();
     createPipeline();
@@ -809,18 +966,23 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
     createDescriptorSet();
     createVertexBuffer();
     createIndexBuffer();
-    createSemaphores();
+    createSynchObjects();
     createCommandBuffers();
 }
 
 void render() {
     vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-    vkResetFences(device, 1, &inFlightFences[currentFrame]);
-
     updateUniformBuffer(currentFrame);
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        createSwapchain();
+        return;
+    }
+
+    vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
     VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
     VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
@@ -854,12 +1016,7 @@ void render() {
 
 void deinitialize() {
     vkDeviceWaitIdle(device);
-
-    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        vkDestroyFence(device, inFlightFences[i], NULL);
-        vkDestroySemaphore(device, imageAvailableSemaphores[i], NULL);
-        vkDestroySemaphore(device, renderFinishedSemaphores[i], NULL);
-    }
+    destroySynchObjects();
 
     vkDestroyPipeline(device, pipeline, NULL);
     vkDestroyPipelineLayout(device, pipelineLayout, NULL);
@@ -876,25 +1033,13 @@ void deinitialize() {
     vkDestroyBuffer(device, indexBuffer, NULL);
     vkFreeMemory(device, indexBufferMemory, NULL);
 
-    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
-        vkDestroyFramebuffer(device, framebuffers[i], NULL);
-    }
-    free(framebuffers);
+    destroyFramebuffers();
+    destroyCommandBuffers();
+    destroyImageViews();
+    destroyRenderPass();
+    destroySwapchain();
+    destroySurface();
 
-    vkDestroyRenderPass(device, renderPass, NULL);
-
-    for (uint32_t i = 0; i < swapchainImageCount; ++i) {
-        vkDestroyImageView(device, imageViews[i], NULL);
-    }
-    free(imageViews);
-
-    vkDestroyCommandPool(device, commandPool, NULL);
-    free(commandBuffers);
-
-    vkDestroySwapchainKHR(device, swapchain, NULL);
-    free(swapchainImages);
-
-    vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroyInstance(instance, NULL);
 }
@@ -916,6 +1061,13 @@ void moveBackward() {
 }
 
 void mouseMove(float x, float y) {
-    //camera_pitch(&camera, y * 0.1f);
-    //camera_yaw(&camera, x * 0.1f);
+    camera_pitch(&camera, y * -0.1f);
+    camera_yaw(&camera, x * 0.1f);
+}
+
+void enableFullScreen() {
+    width = 1920;
+    height = 1080;
+
+    createSwapchain();
 }
