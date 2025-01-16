@@ -1045,14 +1045,12 @@ void moveBackward() {
 }
 
 Quaternion correct_roll(Quaternion current_rotation) {
-    float roll_angle = quaternion_extract_roll_angle(current_rotation);
-
-    Quaternion correction = quaternion_angle_axis(
-        -roll_angle, (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f });
-
-    return quaternion_multiply(correction, current_rotation);
+    return quaternion_multiply(
+        quaternion_angle_axis(
+            -quaternion_extract_roll_angle(current_rotation),
+            (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f }),
+        current_rotation);
 }
-
 
 /*
 Quaternion quaternion_from_forward_up(Vector3 forward, Vector3 up) {
