@@ -1037,7 +1037,7 @@ void moveLeft() {
 }
 
 void moveRight() {
-    camera_yaw(&camera, radians(0.1f));
+    camera_yaw(&camera, radians(10));
 }
 
 void moveBackward() {
@@ -1046,10 +1046,11 @@ void moveBackward() {
 
 Quaternion correct_roll(Quaternion current_rotation) {
     float roll_angle = quaternion_extract_roll_angle(current_rotation);
-    Quaternion correction = quaternion_angle_axis(-roll_angle, (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f });
-    Quaternion corrected_rotation = quaternion_multiply(correction, current_rotation);
 
-    return corrected_rotation;
+    Quaternion correction = quaternion_angle_axis(
+        -roll_angle, (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f });
+
+    return quaternion_multiply(correction, current_rotation);
 }
 
 
@@ -1120,5 +1121,6 @@ void enableFullScreen() {
     width = 1920;
     height = 1080;
 
+    ShowCursor(false);
     createSwapchain();
 }
