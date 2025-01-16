@@ -1044,16 +1044,6 @@ void moveBackward() {
     camera_move(&camera, -0.1f);
 }
 
-Quaternion create_roll_correction_quaternion(float roll_angle) {
-    float half_angle = roll_angle / 2.0f;
-    return (Quaternion) {
-        .w = cosf(half_angle),
-            .x = 0.0f,
-            .y = 0.0f,
-            .z = -sinf(half_angle)
-    };
-}
-
 Quaternion correct_roll(Quaternion current_rotation) {
     float roll_angle = quaternion_extract_roll_angle(current_rotation);
     Quaternion correction = quaternion_angle_axis(-roll_angle, (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f });
