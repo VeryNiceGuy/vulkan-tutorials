@@ -1,3 +1,6 @@
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "perspective_projection.h"
 #include "vector3.h"
 #include "matrix4x4.h"
@@ -719,7 +722,7 @@ void createCommandBuffers() {
         };
         VkResult ress = vkBeginCommandBuffer(commandBuffers[i], &commandBufferBeginInfo);
 
-        VkClearValue clearColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+        VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
         VkRenderPassBeginInfo renderPassBeginInfo = {
             .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
             .renderPass = renderPass,
@@ -867,26 +870,6 @@ void createSwapchain() {
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
 
-    /*
-    VkSwapchainCreateInfoKHR swapchainCreateInfo = {
-    .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-    .surface = surface, // Your Vulkan surface
-    .minImageCount = imageCount, // Number of images in the swapchain
-    .imageFormat = imageFormat, // Format of the swapchain images
-    .imageColorSpace = colorSpace, // Color space of the swapchain images
-    .imageExtent = { width, height }, // Extent of the swapchain images
-    .imageArrayLayers = 1, // Number of layers in each image
-    .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, // Usage of the images
-    .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE, // Use exclusive mode
-    .queueFamilyIndexCount = 0, // Number of queue families to share with
-    .pQueueFamilyIndices = NULL, // Array of queue family indices to share with (if any)
-    .preTransform = preTransform, // Transform to apply to the images
-    .compositeAlpha = compositeAlpha, // Alpha blending mode
-    .presentMode = presentMode, // Presentation mode
-    .clipped = VK_TRUE, // Whether to clip rendering outside the surface area
-    .oldSwapchain = oldSwapchain // Handle of the old swapchain (if any)
-    };*/
-
     VkSwapchainKHR newSwapchain;
     VkResult res = vkCreateSwapchainKHR(device, &swapchainCreateInfo, NULL, &newSwapchain);
 
@@ -913,7 +896,8 @@ void createSwapchain() {
         createCommandBuffers();
         
         switchToFullscreen(windowHandle, 1920, 1080);
-        vkAcquireFullScreenExclusiveModeEXT2(device, swapchain);
+        VkResult rrr = vkAcquireFullScreenExclusiveModeEXT2(device, swapchain);
+        VkResult kkk = rrr;
     }
 }
 
@@ -1049,20 +1033,97 @@ void moveForward() {
 }
 
 void moveLeft() {
-    camera_yaw(&camera, -0.1f);
+    camera_yaw(&camera, radians(-0.1f));
 }
 
 void moveRight() {
-    camera_yaw(&camera, 0.1f);
+    camera_yaw(&camera, radians(0.1f));
 }
 
 void moveBackward() {
     camera_move(&camera, -0.1f);
 }
 
+Quaternion create_roll_correction_quaternion(float roll_angle) {
+    float half_angle = roll_angle / 2.0f;
+    return (Quaternion) {
+        .w = cosf(half_angle),
+            .x = 0.0f,
+            .y = 0.0f,
+            .z = -sinf(half_angle)
+    };
+}
+
+Quaternion correct_roll(Quaternion current_rotation) {
+    float roll_angle = quaternion_extract_roll_angle(current_rotation);
+    Quaternion correction = quaternion_angle_axis(-roll_angle, (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f });
+    Quaternion corrected_rotation = quaternion_multiply(correction, current_rotation);
+
+    return corrected_rotation;
+}
+
+
+/*
+Quaternion quaternion_from_forward_up(Vector3 forward, Vector3 up) {
+    Vector3 right = vector3_normalize(vector3_cross(up, forward));
+    up = vector3_normalize(vector3_cross(forward, right));
+
+    Quaternion q;
+    q.w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
+    float w4 = (4.0f * q.w);
+    q.x = (up.z - forward.y) / w4;
+    q.y = (forward.x - right.z) / w4;
+    q.z = (right.y - up.x) / w4;
+
+    return q;
+}
+
+Quaternion correct_roll(Quaternion current_rotation) {
+    Vector3 forward = quaternion_rotate_vector(current_rotation, (Vector3) { 0.0f, 0.0f, 1.0f });
+    Vector3 world_up = { 0.0f, 1.0f, 0.0f };
+    Vector3 right = vector3_normalize(vector3_cross(world_up, forward));
+    Vector3 corrected_up = vector3_normalize(vector3_cross(forward, right));
+    Quaternion corrected_rotation = quaternion_from_forward_up(forward, corrected_up);
+
+    return corrected_rotation;
+}*/
+
+//
+/*
+Quaternion correct_roll(Quaternion current_rotation) {
+    // Extract forward and right vectors from the current rotation
+    Vector3 forward = quaternion_rotate_vector(current_rotation, (Vector3) { 0.0f, 0.0f, 1.0f });
+    Vector3 right = quaternion_rotate_vector(current_rotation, (Vector3) { 1.0f, 0.0f, 0.0f });
+
+    // Calculate the world up vector
+    Vector3 world_up = { 0.0f, 1.0f, 0.0f };
+    Vector3 actual_up = vector3_cross(forward, right);
+    actual_up = vector3_normalize(actual_up);
+
+    // Calculate the deviation between actual up and world up
+    Vector3 cross = vector3_cross(actual_up, world_up);
+    float dot = actual_up.x * world_up.x + actual_up.y * world_up.y + actual_up.z * world_up.z;
+    float angle = acosf(dot);
+
+    // Check if the angle is significant to correct
+    if (fabsf(angle) < 0.0001f) {
+        return current_rotation;
+    }
+
+    // Normalize the correction axis
+    Vector3 correction_axis = vector3_normalize(cross);
+    Quaternion correction = quaternion_angle_axis(angle * 180.0f / M_PI, correction_axis);
+    Quaternion corrected_rotation = quaternion_multiply(correction, current_rotation);
+
+    return corrected_rotation;
+}*/
+
+
+
 void mouseMove(float x, float y) {
-    camera_pitch(&camera, y * -0.1f);
-    camera_yaw(&camera, x * 0.1f);
+    camera_yaw(&camera, radians(x * 0.1f));
+    camera_pitch(&camera, radians(y * -0.1f));
+    camera.rotation = correct_roll(camera.rotation);
 }
 
 void enableFullScreen() {

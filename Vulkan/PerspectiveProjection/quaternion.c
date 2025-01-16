@@ -2,6 +2,14 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+float degrees(float radians) {
+    return radians * (180.0f / M_PI);
+}
+
+float radians(float degrees) {
+    return degrees * M_PI / 180.0f;
+}
+
 Quaternion quaternion_add(Quaternion a, Quaternion b) {
     return (Quaternion) {
         .w = a.w + b.w,
@@ -74,11 +82,10 @@ Quaternion quaternion_inverse(Quaternion q) {
 }
 
 Quaternion quaternion_angle_axis(float angle, Vector3 axis) {
-    float rad = angle * M_PI / 180.0f;
-    float s = sinf(rad / 2.0f);
+    float s = sinf(angle / 2.0f);
 
     return (Quaternion) {
-        .w = cosf(rad / 2.0f),
+        .w = cosf(angle / 2.0f),
         .x = s * axis.x,
         .y = s * axis.y,
         .z = s * axis.z
@@ -89,4 +96,16 @@ Vector3 quaternion_rotate_vector(Quaternion q, Vector3 v) {
     Quaternion result = quaternion_multiply(quaternion_multiply(q, (Quaternion) { .w = 0.0f, .x = v.x, .y = v.y, .z = v.z }), quaternion_conjugate(q));
 
     return (Vector3) { .x = result.x, .y = result.y, .z = result.z };
+}
+
+float quaternion_extract_roll_angle(Quaternion q) {
+    return atan2f(2.0f * (q.w * q.z + q.x * q.y), 1.0f - 2.0f * (q.y * q.y + q.z * q.z));
+}
+
+float quaternion_extract_yaw_angle(Quaternion q) {
+    return atan2f(2.0f * (q.w * q.y + q.x * q.z), 1.0f - 2.0f * (q.y * q.y + q.z * q.z));
+}
+
+float quaternion_extract_pitch_angle(Quaternion q) {
+    return asinf(2.0f * (q.w * q.x - q.y * q.z));
 }

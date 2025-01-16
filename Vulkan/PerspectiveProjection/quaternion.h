@@ -7,6 +7,9 @@ typedef struct Quaternion {
 
 static const Quaternion quaternion_identity = { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f };
 
+float degrees(float radians);
+float radians(float degrees);
+
 Quaternion quaternion_add(Quaternion a, Quaternion b);
 Quaternion quaternion_subtract(Quaternion a, Quaternion b);
 Quaternion quaternion_multiply(Quaternion a, Quaternion b);
@@ -17,3 +20,7 @@ Quaternion quaternion_conjugate(Quaternion q);
 Quaternion quaternion_inverse(Quaternion q);
 Quaternion quaternion_angle_axis(float angle, Vector3 axis);
 Vector3 quaternion_rotate_vector(Quaternion q, Vector3 v);
+
+float quaternion_extract_roll_angle(Quaternion q);
+float quaternion_extract_yaw_angle(Quaternion q);
+float quaternion_extract_pitch_angle(Quaternion q);
