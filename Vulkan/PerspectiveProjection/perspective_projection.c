@@ -58,19 +58,21 @@ struct Vertex {
     float x, y, z;
 };
 
-struct Vertex vertices[] = {
-    {1.0, 1.0, 1.0},
-    {-1.0, -1.0, 1.0 },
-    {-1.0, 1.0, -1.0},
-    {1.0, -1.0, -1.0}
+// Define four vertices
+struct Vertex vertices[4] = {
+    {0.0f, 0.0f, 0.0f}, // Bottom-left
+    {20.0f, 0.0f, 0.0f}, // Bottom-right
+    {0.0f, 0.0f, 20.0f}, // Top-left
+    {20.0f, 0.0f, 20.0f}  // Top-right
 };
 
-uint32_t indices[] = {
-    0, 2, 1,
-    0, 3, 1,
-    0, 3, 2,
-    1, 2, 3
+
+// Define the indices for the two triangles
+unsigned int indices[6] = {
+    0, 1, 2, // First triangle (Bottom-left, Bottom-right, Top-left)
+    1, 3, 2  // Second triangle (Bottom-right, Top-right, Top-left)
 };
+
 
 struct MVP {
     Matrix4x4 model;
@@ -571,7 +573,7 @@ void createPipeline() {
 
     VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-        .polygonMode = VK_POLYGON_MODE_LINE,
+        .polygonMode = VK_POLYGON_MODE_FILL,
         .cullMode = VK_CULL_MODE_BACK_BIT,
         .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
         .lineWidth = 1.0f
@@ -932,7 +934,7 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
     camera_init_quaternion(
         &camera,
         (Quaternion) { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f },
-        (Vector3) { .x = 0, .y = 0, .z = -5 });
+        (Vector3) { .x = 0, .y = 0, .z = 0 });
 
     createInstance();
     createSurface(hInstance, hWnd);
@@ -1037,22 +1039,23 @@ void moveLeft() {
 }
 
 void moveRight() {
-    camera_yaw(&camera, radians(10));
+    camera_pitch(&camera, radians(10));
 }
 
 void moveBackward() {
     camera_move(&camera, -0.1f);
 }
 
+/*
 Quaternion correct_roll(Quaternion current_rotation) {
     return quaternion_multiply(
+        current_rotation,
         quaternion_angle_axis(
             -quaternion_extract_roll_angle(current_rotation),
-            (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f }),
-        current_rotation);
-}
+            (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f }));
+}*/
 
-/*
+
 Quaternion quaternion_from_forward_up(Vector3 forward, Vector3 up) {
     Vector3 right = vector3_normalize(vector3_cross(up, forward));
     up = vector3_normalize(vector3_cross(forward, right));
@@ -1075,7 +1078,7 @@ Quaternion correct_roll(Quaternion current_rotation) {
     Quaternion corrected_rotation = quaternion_from_forward_up(forward, corrected_up);
 
     return corrected_rotation;
-}*/
+}
 
 //
 /*
@@ -1112,7 +1115,7 @@ Quaternion correct_roll(Quaternion current_rotation) {
 void mouseMove(float x, float y) {
     camera_yaw(&camera, radians(x * 0.1f));
     camera_pitch(&camera, radians(y * -0.1f));
-    camera.rotation = correct_roll(camera.rotation);
+    camera.rotation = quaternion_normalize(correct_roll(camera.rotation));
 }
 
 void enableFullScreen() {
