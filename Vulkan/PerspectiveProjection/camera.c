@@ -28,7 +28,8 @@ void camera_pitch(Camera* camera, float angle) {
 
 void camera_roll(Camera* camera, float angle) {
     camera->rotation = quaternion_normalize(
-        quaternion_multiply(camera->rotation, quaternion_angle_axis(angle, vector3_unit_z)));
+        quaternion_multiply(camera->rotation,
+            quaternion_angle_axis(angle, vector3_unit_z)));
 }
 
 Quaternion camera_get_rotation(Camera* camera) {

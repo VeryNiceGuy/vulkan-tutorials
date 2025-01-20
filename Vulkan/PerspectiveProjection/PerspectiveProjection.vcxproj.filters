@@ -36,6 +36,12 @@
     <ClCompile Include="quaternion.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="bmp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tga.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="perspective_projection.h">
@@ -54,6 +60,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="quaternion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bmp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tga.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

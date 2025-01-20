@@ -5,6 +5,7 @@
 #include "vector3.h"
 #include "matrix4x4.h"
 #include "camera.h"
+#include "tga.h"
 
 HWND windowHandle;
 VkInstance instance;
@@ -56,21 +57,20 @@ float height = 600;
 
 struct Vertex {
     float x, y, z;
+    float u, v;
 };
 
-// Define four vertices
 struct Vertex vertices[4] = {
-    {0.0f, 0.0f, 0.0f}, // Bottom-left
-    {20.0f, 0.0f, 0.0f}, // Bottom-right
-    {0.0f, 0.0f, 20.0f}, // Top-left
-    {20.0f, 0.0f, 20.0f}  // Top-right
+    {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+    {20.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+    {0.0f, 0.0f, 20.0f, 0.0f, 1.0f},
+    {20.0f, 0.0f, 20.0f, 1.0f, 1.0f}
 };
 
 
-// Define the indices for the two triangles
 unsigned int indices[6] = {
-    0, 1, 2, // First triangle (Bottom-left, Bottom-right, Top-left)
-    1, 3, 2  // Second triangle (Bottom-right, Top-right, Top-left)
+    0, 1, 2,
+    1, 3, 2
 };
 
 
@@ -92,8 +92,147 @@ VkDescriptorPool descriptorPool;
 VkDescriptorSet descriptorSets[MAX_FRAMES_IN_FLIGHT];
 
 VkDebugUtilsMessengerEXT debugMessenger;
-
 PFN_vkAcquireFullScreenExclusiveModeEXT vkAcquireFullScreenExclusiveModeEXT2;
+
+VkImage textureImage;
+VkDeviceMemory textureImageMemory;
+VkImageView textureImageView;
+VkSampler textureSampler;
+VkDescriptorSet descriptorSet;
+
+uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);
+
+    for (uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; ++i) {
+        if ((typeFilter & (1 << i)) && (physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+}
+
+/////////////////
+
+
+void querySupportedFormats() {
+    VkFormat formats[] = {
+        VK_FORMAT_R8G8B8A8_UNORM,
+        VK_FORMAT_B8G8R8A8_UNORM,
+        VK_FORMAT_R8G8B8_UNORM,
+        VK_FORMAT_B8G8R8_UNORM,
+        VK_FORMAT_R8_UNORM,
+        VK_FORMAT_D32_SFLOAT,
+        // Add more formats as needed
+    };
+
+    for (size_t i = 0; i < sizeof(formats) / sizeof(formats[0]); ++i) {
+        VkFormat format = formats[i];
+
+        VkPhysicalDeviceImageFormatInfo2 formatInfo = {};
+        formatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
+        formatInfo.format = format;
+        formatInfo.type = VK_IMAGE_TYPE_2D;
+        formatInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        formatInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+        formatInfo.flags = 0;
+
+        VkImageFormatProperties2 imageFormatProperties = {};
+        imageFormatProperties.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
+
+        VkResult result = vkGetPhysicalDeviceImageFormatProperties2(physicalDevice, &formatInfo, &imageFormatProperties);
+
+        if (result == VK_SUCCESS) {
+            printf("Format %d is supported.\n", format);
+            VkImageFormatProperties properties = imageFormatProperties.imageFormatProperties;
+            printf("  Max Extent: %d x %d x %d\n", properties.maxExtent.width, properties.maxExtent.height, properties.maxExtent.depth);
+            printf("  Max Mip Levels: %d\n", properties.maxMipLevels);
+            printf("  Max Array Layers: %d\n", properties.maxArrayLayers);
+            printf("  Sample Counts: %d\n", properties.sampleCounts);
+            printf("  Max Resource Size: %llu\n", properties.maxResourceSize);
+        }
+        else {
+            printf("Format %d is not supported.\n", format);
+        }
+    }
+}
+
+
+////////////////
+
+void createTextureImage() {
+    //querySupportedFormats();
+
+    const char* filename = "image.tga";
+    TGAImage* image = loadTGA(filename);
+
+    VkDeviceSize imageSize = image->width * image->height * 4;
+
+    VkImageCreateInfo imageInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+        .imageType = VK_IMAGE_TYPE_2D,
+        .extent = {.width = 1024, .height = 1024, .depth = 1 },
+        .mipLevels = 1,
+        .arrayLayers = 1,
+        .format = VK_FORMAT_R8G8B8A8_UNORM,
+        .tiling = VK_IMAGE_TILING_LINEAR,
+        .initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+        .usage = VK_IMAGE_USAGE_SAMPLED_BIT,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+    };
+
+    vkCreateImage(device, &imageInfo, NULL, &textureImage);
+    
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device, textureImage, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo = {0};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    vkAllocateMemory(device, &allocInfo, NULL, &textureImageMemory);
+    vkBindImageMemory(device, textureImage, textureImageMemory, 0);
+
+    void* data;
+    vkMapMemory(device, textureImageMemory, 0, VK_WHOLE_SIZE, 0, &data);
+    memcpy(data, image->data, (size_t)imageSize);
+    vkUnmapMemory(device, textureImageMemory);
+
+    freeTGA(image);
+}
+
+void createTextureImageView() {
+    VkImageViewCreateInfo viewInfo = {0};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = textureImage;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+    vkCreateImageView(device, &viewInfo, NULL, &textureImageView);
+}
+
+void createTextureSampler() {
+    VkSamplerCreateInfo samplerInfo = {0};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = 16;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    vkCreateSampler(device, &samplerInfo, NULL, &textureSampler);
+}
 
 void destroySwapchain() {
     vkDestroySwapchainKHR(device, swapchain, NULL);
@@ -145,30 +284,23 @@ void createImageViews() {
     }
 }
 
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);
-
-    for (uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; ++i) {
-        if ((typeFilter & (1 << i)) && (physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-}
-
 void createDescriptorSetLayout() {
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {
+    VkDescriptorSetLayoutBinding layoutBindings[] = {{
         .binding = 0,
         .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
         .descriptorCount = 1,
-        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-        .pImmutableSamplers = NULL
-    };
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+    }, {
+        .binding = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+    }};
 
     VkDescriptorSetLayoutCreateInfo layoutInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = 1,
-        .pBindings = &uboLayoutBinding
+        .bindingCount = 2,
+        .pBindings = layoutBindings
     };
 
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
@@ -177,15 +309,12 @@ void createDescriptorSetLayout() {
 }
 
 void createDescriptorPool() {
-    VkDescriptorPoolSize poolSize = {
-        .type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-        .descriptorCount = MAX_FRAMES_IN_FLIGHT
-    };
+    VkDescriptorPoolSize poolSizes[] = { { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 }, { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 } };
 
     VkDescriptorPoolCreateInfo poolInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .poolSizeCount = 1,
-        .pPoolSizes = &poolSize,
+        .poolSizeCount = 2,
+        .pPoolSizes = poolSizes,
         .maxSets = MAX_FRAMES_IN_FLIGHT
     };
 
@@ -209,7 +338,13 @@ void createDescriptorSet() {
             .range = VK_WHOLE_SIZE
         };
 
-        VkWriteDescriptorSet descriptorWrite = {
+        VkDescriptorImageInfo imageInfo = {
+            .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            .imageView = textureImageView,
+            .sampler = textureSampler
+        };
+
+        VkWriteDescriptorSet descriptorWrites[] = {{
             .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
             .dstSet = descriptorSets[i],
             .dstBinding = 0,
@@ -217,9 +352,17 @@ void createDescriptorSet() {
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             .descriptorCount = 1,
             .pBufferInfo = &bufferInfo
-        };
+        }, {
+            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+            .dstSet = descriptorSets[i],
+            .dstBinding = 1,
+            .dstArrayElement = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = 1,
+            .pImageInfo = &imageInfo
+        }};
 
-        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, NULL);
+        vkUpdateDescriptorSets(device, 2, &descriptorWrites, 0, NULL);
     }
 }
 
@@ -551,19 +694,24 @@ void createPipeline() {
         .inputRate = VK_VERTEX_INPUT_RATE_VERTEX
     };
 
-    VkVertexInputAttributeDescription vertexInputAttributeDescription = {
+    VkVertexInputAttributeDescription vertexInputAttributeDescriptions[] = { {
         .binding = 0,
         .location = 0,
         .format = VK_FORMAT_R32G32B32_SFLOAT,
         .offset = 0
-    };
+    }, {
+        .binding = 0,
+        .location = 1,
+        .format = VK_FORMAT_R32G32_SFLOAT,
+        .offset = offsetof(struct Vertex, u)
+    } };
 
     VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .vertexBindingDescriptionCount = 1,
         .pVertexBindingDescriptions = &vertexInputBinding,
-        .vertexAttributeDescriptionCount = 1,
-        .pVertexAttributeDescriptions = &vertexInputAttributeDescription
+        .vertexAttributeDescriptionCount = 2,
+        .pVertexAttributeDescriptions = &vertexInputAttributeDescriptions
     };
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo = {
@@ -948,6 +1096,11 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
     createPipeline();
     createFramebuffers();
     createUniformBuffers();
+
+    createTextureImage();
+    createTextureImageView();
+    createTextureSampler();
+
     createDescriptorPool();
     createDescriptorSet();
     createVertexBuffer();
