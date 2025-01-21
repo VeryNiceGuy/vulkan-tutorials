@@ -1199,16 +1199,16 @@ void moveBackward() {
     camera_move(&camera, -0.1f);
 }
 
-/*
+
 Quaternion correct_roll(Quaternion current_rotation) {
     return quaternion_multiply(
         current_rotation,
         quaternion_angle_axis(
             -quaternion_extract_roll_angle(current_rotation),
-            (Vector3) { .x = 0.0f, .y = 0.0f, .z = 1.0f }));
-}*/
+            vector3_normalize(/*quaternion_rotate_vector(current_rotation, */vector3_unit_z/*)*/)));
+}
 
-
+/*
 Quaternion quaternion_from_forward_up(Vector3 forward, Vector3 up) {
     Vector3 right = vector3_normalize(vector3_cross(up, forward));
     up = vector3_normalize(vector3_cross(forward, right));
@@ -1231,7 +1231,7 @@ Quaternion correct_roll(Quaternion current_rotation) {
     Quaternion corrected_rotation = quaternion_from_forward_up(forward, corrected_up);
 
     return corrected_rotation;
-}
+}*/
 
 //
 /*
@@ -1266,9 +1266,8 @@ Quaternion correct_roll(Quaternion current_rotation) {
 
 
 void mouseMove(float x, float y) {
-    camera_yaw(&camera, radians(x * 0.1f));
     camera_pitch(&camera, radians(y * -0.1f));
-    camera.rotation = quaternion_normalize(correct_roll(camera.rotation));
+    camera_yaw(&camera, radians(x * 0.1f));
 }
 
 void enableFullScreen() {

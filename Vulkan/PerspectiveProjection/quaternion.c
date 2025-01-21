@@ -109,3 +109,41 @@ float quaternion_extract_yaw_angle(Quaternion q) {
 float quaternion_extract_pitch_angle(Quaternion q) {
     return asinf(2.0f * (q.w * q.x - q.y * q.z));
 }
+
+Quaternion quaternion_slerp(Quaternion a, Quaternion b, float t) {
+    float dot = a.w * b.w + a.x * b.x + a.y * b.y + a.z * b.z;
+
+    if (dot < 0.0f) {
+        b.w = -b.w;
+        b.x = -b.x;
+        b.y = -b.y;
+        b.z = -b.z;
+        dot = -dot;
+    }
+
+    const float DOT_THRESHOLD = 0.9995f;
+    if (dot > DOT_THRESHOLD) {
+        Quaternion result = {
+            .w = a.w + t * (b.w - a.w),
+            .x = a.x + t * (b.x - a.x),
+            .y = a.y + t * (b.y - a.y),
+            .z = a.z + t * (b.z - a.z)
+        };
+        return quaternion_normalize(result);
+    }
+
+    float theta_0 = acosf(dot);  // theta_0 = angle between input vectors
+    float theta = theta_0 * t;   // theta = angle between a and result
+    float sin_theta = sinf(theta);
+    float sin_theta_0 = sinf(theta_0);
+
+    float s0 = cosf(theta) - dot * sin_theta / sin_theta_0;  // = sin(theta_0 - theta) / sin(theta_0)
+    float s1 = sin_theta / sin_theta_0;
+
+    return (Quaternion) {
+        .w = s0 * a.w + s1 * b.w,
+        .x = s0 * a.x + s1 * b.x,
+        .y = s0 * a.y + s1 * b.y,
+        .z = s0 * a.z + s1 * b.z
+    };
+}

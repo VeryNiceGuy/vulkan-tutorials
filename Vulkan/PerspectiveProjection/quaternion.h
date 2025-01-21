@@ -24,3 +24,5 @@ Vector3 quaternion_rotate_vector(Quaternion q, Vector3 v);
 float quaternion_extract_roll_angle(Quaternion q);
 float quaternion_extract_yaw_angle(Quaternion q);
 float quaternion_extract_pitch_angle(Quaternion q);
+
+Quaternion quaternion_slerp(Quaternion a, Quaternion b, float t);

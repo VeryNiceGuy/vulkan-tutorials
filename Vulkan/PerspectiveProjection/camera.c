@@ -14,9 +14,8 @@ void camera_init_quaternion(Camera* camera, Quaternion rotation, Vector3 positio
 
 void camera_yaw(Camera* camera, float angle) {
     camera->rotation = quaternion_normalize(
-        quaternion_multiply(camera->rotation,
-            quaternion_angle_axis(angle,
-                vector3_normalize(vector3_unit_y))));
+        quaternion_multiply(quaternion_angle_axis(angle,
+            vector3_normalize(vector3_unit_y)), camera->rotation));
 }
 
 void camera_pitch(Camera* camera, float angle) {
@@ -25,6 +24,20 @@ void camera_pitch(Camera* camera, float angle) {
             quaternion_angle_axis(angle,
                 vector3_normalize(vector3_unit_x))));
 }
+
+/*
+void camera_yaw(Camera* camera, float angle) {
+    float t = 0.5f;
+    Quaternion yaw = quaternion_angle_axis(angle, (Vector3) { 0.0f, 1.0f, 0.0f });
+    camera->rotation = quaternion_slerp(camera->rotation, quaternion_multiply(camera->rotation, yaw), t);
+}
+
+void camera_pitch(Camera* camera, float angle) {
+    float t = 0.5f;
+    Quaternion pitch = quaternion_angle_axis(angle, (Vector3) { 1.0f, 0.0f, 0.0f });
+    camera->rotation = quaternion_slerp(camera->rotation, quaternion_multiply(camera->rotation, pitch), t);
+}*/
+
 
 void camera_roll(Camera* camera, float angle) {
     camera->rotation = quaternion_normalize(
