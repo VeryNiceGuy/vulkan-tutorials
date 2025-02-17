@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\obj">
+      <UniqueIdentifier>{dbd28002-7bdb-4c6e-a129-f9842f98c94d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hash">
+      <UniqueIdentifier>{948903f0-7ceb-4ad1-9f14-801f12520a0f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="perspective_projection.c">
@@ -42,6 +48,27 @@
     <ClCompile Include="tga.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="obj_loader.c">
+      <Filter>Source Files\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="dynamic_array.c">
+      <Filter>Source Files\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="hash.c">
+      <Filter>Source Files\hash</Filter>
+    </ClCompile>
+    <ClCompile Include="hashtable.c">
+      <Filter>Source Files\hash</Filter>
+    </ClCompile>
+    <ClCompile Include="string_utils.c">
+      <Filter>Source Files\obj</Filter>
+    </ClCompile>
+    <ClCompile Include="buffers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="memory.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="perspective_projection.h">
@@ -66,6 +93,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tga.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic_array.h">
+      <Filter>Source Files\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="obj_loader.h">
+      <Filter>Source Files\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="hash.h">
+      <Filter>Source Files\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="string_utils.h">
+      <Filter>Source Files\obj</Filter>
+    </ClInclude>
+    <ClInclude Include="hashtable.h">
+      <Filter>Source Files\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="buffers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

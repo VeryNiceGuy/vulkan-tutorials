@@ -4,6 +4,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "matrix4x4.h"
+
+typedef struct SceneObject {
+	Matrix4x4 world;
+	VkBuffer vertex_buffer;
+	VkDeviceMemory vertex_buffer_memory;
+	VkBuffer index_buffer;
+	VkDeviceMemory index_buffer_memory;
+} SceneObject;
 
 static const uint32_t WIDTH = 800;
 static const uint32_t HEIGHT = 600;

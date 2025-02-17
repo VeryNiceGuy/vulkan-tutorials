@@ -6,6 +6,8 @@
 #include "matrix4x4.h"
 #include "camera.h"
 #include "tga.h"
+#include "memory.h"
+#include "buffers.h"
 
 HWND windowHandle;
 VkInstance instance;
@@ -55,10 +57,10 @@ size_t currentFrame = 0;
 float width = 800;
 float height = 600;
 
-struct Vertex {
+typedef struct Vertex {
     float x, y, z;
     float u, v;
-};
+} Vertex;
 
 struct Vertex vertices[4] = {
     {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
@@ -100,16 +102,7 @@ VkImageView textureImageView;
 VkSampler textureSampler;
 VkDescriptorSet descriptorSet;
 
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);
 
-    for (uint32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; ++i) {
-        if ((typeFilter & (1 << i)) && (physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-}
 
 /////////////////
 
@@ -189,7 +182,7 @@ void createTextureImage() {
     VkMemoryAllocateInfo allocInfo = {0};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     vkAllocateMemory(device, &allocInfo, NULL, &textureImageMemory);
     vkBindImageMemory(device, textureImage, textureImageMemory, 0);
@@ -362,7 +355,7 @@ void createDescriptorSet() {
             .pImageInfo = &imageInfo
         }};
 
-        vkUpdateDescriptorSets(device, 2, &descriptorWrites, 0, NULL);
+        vkUpdateDescriptorSets(device, 2, descriptorWrites, 0, NULL);
     }
 }
 
@@ -373,27 +366,8 @@ void createUniformBuffers() {
         .proj = matrix4x4_perspective_fov_lh_gl(0.785398f, 800.0f / 600.0f, 0.1f, 100.0f)
     };
 
-    VkBufferCreateInfo bufferInfo = {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = sizeof(mvp),
-        .usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
-    };
-
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        vkCreateBuffer(device, &bufferInfo, NULL, &uniformBuffers[i]);
-
-        VkMemoryRequirements memRequirements;
-        vkGetBufferMemoryRequirements(device, uniformBuffers[i], &memRequirements);
-
-        VkMemoryAllocateInfo memoryAllocateInfo = {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-            .allocationSize = memRequirements.size,
-            .memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-        };
-
-        vkAllocateMemory(device, &memoryAllocateInfo, NULL, &uniformBuffersMemory[i]);
-        vkBindBufferMemory(device, uniformBuffers[i], uniformBuffersMemory[i], 0);
+        createUniformBuffer(physicalDevice, device, &uniformBuffers[i], &uniformBuffersMemory[i], sizeof(mvp));
     }
 }
 
@@ -598,59 +572,6 @@ void destroyRenderPass() {
     renderPass = VK_NULL_HANDLE;
 }
 
-void createVertexBuffer() {
-    VkBufferCreateInfo vertexBufferInfoCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = sizeof(vertices),
-        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
-    };
-    vkCreateBuffer(device, &vertexBufferInfoCreateInfo, NULL, &vertexBuffer);
-
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(device, vertexBuffer, &memoryRequirements);
-
-    VkMemoryAllocateInfo memoryAllocateInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memoryRequirements.size,
-        .memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-    };
-    vkAllocateMemory(device, &memoryAllocateInfo, NULL, &vertexBufferMemory);
-    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
-
-    void* data;
-    vkMapMemory(device, vertexBufferMemory, 0, sizeof(vertices), 0, &data);
-    memcpy(data, vertices, sizeof(vertices));
-    vkUnmapMemory(device, vertexBufferMemory);
-}
-
-void createIndexBuffer() {
-    VkBufferCreateInfo indexBufferCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = sizeof(indices),
-        .usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
-    };
-
-    vkCreateBuffer(device, &indexBufferCreateInfo, NULL, &indexBuffer);
-
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(device, indexBuffer, &memoryRequirements);
-
-    VkMemoryAllocateInfo memoryAllocateInfo = {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memoryRequirements.size,
-        .memoryTypeIndex = findMemoryType(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-    };
-    vkAllocateMemory(device, &memoryAllocateInfo, NULL, &indexBufferMemory);
-    vkBindBufferMemory(device, indexBuffer, indexBufferMemory, 0);
-
-    void* data;
-    vkMapMemory(device, indexBufferMemory, 0, sizeof(indices), 0, &data);
-    memcpy(data, indices, sizeof(indices));
-    vkUnmapMemory(device, indexBufferMemory);
-}
-
 VkShaderModule createShaderModule(const char* filename) {
     FILE* file = fopen(filename, "rb");
     fseek(file, 0, SEEK_END);
@@ -711,7 +632,7 @@ void createPipeline() {
         .vertexBindingDescriptionCount = 1,
         .pVertexBindingDescriptions = &vertexInputBinding,
         .vertexAttributeDescriptionCount = 2,
-        .pVertexAttributeDescriptions = &vertexInputAttributeDescriptions
+        .pVertexAttributeDescriptions = vertexInputAttributeDescriptions
     };
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo = {
@@ -1103,8 +1024,10 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
 
     createDescriptorPool();
     createDescriptorSet();
-    createVertexBuffer();
-    createIndexBuffer();
+
+    createVertexBuffer(physicalDevice, device, &vertexBuffer, &vertexBufferMemory, sizeof(vertices), vertices);
+    createIndexBuffer(physicalDevice, device, &indexBuffer, &indexBufferMemory, sizeof(indices), indices);
+
     createSynchObjects();
     createCommandBuffers();
 }

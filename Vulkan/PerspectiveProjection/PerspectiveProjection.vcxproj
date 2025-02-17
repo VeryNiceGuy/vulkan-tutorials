@@ -102,7 +102,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VulkanSDK\1.3.296.0\Include</AdditionalIncludeDirectories>
     </ClCompile>
@@ -131,22 +131,36 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bmp.c" />
+    <ClCompile Include="buffers.c" />
     <ClCompile Include="camera.c" />
     <ClCompile Include="dual_quaternion.c" />
+    <ClCompile Include="dynamic_array.c" />
+    <ClCompile Include="hash.c" />
+    <ClCompile Include="hashtable.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="matrix4x4.c" />
+    <ClCompile Include="memory.c" />
+    <ClCompile Include="obj_loader.c" />
     <ClCompile Include="perspective_projection.c" />
     <ClCompile Include="quaternion.c" />
+    <ClCompile Include="string_utils.c" />
     <ClCompile Include="tga.c" />
     <ClCompile Include="vector3.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bmp.h" />
+    <ClInclude Include="buffers.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="dual_quaternion.h" />
+    <ClInclude Include="dynamic_array.h" />
+    <ClInclude Include="hash.h" />
+    <ClInclude Include="hashtable.h" />
     <ClInclude Include="matrix4x4.h" />
+    <ClInclude Include="memory.h" />
+    <ClInclude Include="obj_loader.h" />
     <ClInclude Include="perspective_projection.h" />
     <ClInclude Include="quaternion.h" />
+    <ClInclude Include="string_utils.h" />
     <ClInclude Include="tga.h" />
     <ClInclude Include="vector3.h" />
   </ItemGroup>

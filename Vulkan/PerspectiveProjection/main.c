@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include "perspective_projection.h"
+#include "obj_loader.h"
 
 bool fullscreen = false;
 int prevMouseX = 0;
@@ -17,7 +18,7 @@ void switchToFullscreen(HWND hwnd, int width, int height) {
     SetWindowLong(hwnd, GWL_STYLE, style);
     SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
     ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-}
+}*/
 
 void restoreWindowed(HWND hwnd) {
     LONG style = GetWindowLong(hwnd, GWL_STYLE);
@@ -27,7 +28,7 @@ void restoreWindowed(HWND hwnd) {
     SetWindowLong(hwnd, GWL_STYLE, style);
     SetWindowPos(hwnd, NULL, 100, 100, 800, 600, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
     ShowWindow(hwnd, SW_SHOWNORMAL);
-}*/
+}
 
 void RegisterRawInput(HWND hwnd) {
     RAWINPUTDEVICE rid;
@@ -72,14 +73,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
             break;
         case VK_SPACE:
             enableFullScreen();
-            /*if (!fullscreen) {
+            if (!fullscreen) {
                 switchToFullscreen(hWnd, 1920, 1080);
                 fullscreen = true;
             }
             else {
                 restoreWindowed(hWnd);
                 fullscreen = false;
-            }*/
+            }
             break;
         default:
             break;
@@ -115,6 +116,8 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmd
 
     ShowWindow(hWnd, SW_SHOW);
     initialize(hInst, hWnd);
+    ObjModel model;
+    load_obj_model("Gear2.obj", &model);
 
     MSG msg;
     while (true) {
