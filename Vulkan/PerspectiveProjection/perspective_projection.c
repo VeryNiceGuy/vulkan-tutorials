@@ -903,7 +903,8 @@ void createSwapchain() {
     VkSurfaceFullScreenExclusiveWin32InfoEXT fullscreenExclusiveInfo = {
         .sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT,
         .pNext = NULL,
-        .hmonitor = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTONEAREST) };
+        .hmonitor = MonitorFromWindow(windowHandle, MONITOR_DEFAULTTONEAREST)
+    };
 
     VkSurfaceFullScreenExclusiveInfoEXT surfaceFullscreenExclusiveInfo = {
         .sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT,

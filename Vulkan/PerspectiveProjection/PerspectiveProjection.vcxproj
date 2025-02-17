@@ -143,6 +143,7 @@
     <ClCompile Include="perspective_projection.c" />
     <ClCompile Include="quaternion.c" />
     <ClCompile Include="string_utils.c" />
+    <ClCompile Include="swapchain.c" />
     <ClCompile Include="tga.c" />
     <ClCompile Include="vector3.c" />
   </ItemGroup>

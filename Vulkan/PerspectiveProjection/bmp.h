@@ -25,5 +25,11 @@ typedef struct {
 } BMPInfoHeader;
 #pragma pack(pop)
 
+typedef struct {
+    uint32_t width;
+    uint32_t height;
+    uint8_t* data;
+} BMPImage;
 
-unsigned char* loadBMP(const char* filename, BMPInfoHeader* infoHeader);
+BMPImage* loadBMP(const char* filename);
+void freeBMP(BMPImage* image);
