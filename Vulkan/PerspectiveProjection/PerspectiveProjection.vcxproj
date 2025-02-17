@@ -135,7 +135,6 @@
     <ClCompile Include="camera.c" />
     <ClCompile Include="dual_quaternion.c" />
     <ClCompile Include="dynamic_array.c" />
-    <ClCompile Include="hash.c" />
     <ClCompile Include="hashtable.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="matrix4x4.c" />
@@ -153,7 +152,6 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="dual_quaternion.h" />
     <ClInclude Include="dynamic_array.h" />
-    <ClInclude Include="hash.h" />
     <ClInclude Include="hashtable.h" />
     <ClInclude Include="matrix4x4.h" />
     <ClInclude Include="memory.h" />

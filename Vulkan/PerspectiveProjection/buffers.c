@@ -1,5 +1,6 @@
 #include "buffers.h"
 #include "memory.h"
+#include <string.h>
 
 void createVertexBuffer(
     VkPhysicalDevice physicalDevice,

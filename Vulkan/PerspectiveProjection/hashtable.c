@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hash.h"
 #include "hashtable.h"
 
 #define LOAD_FACTOR 0.75
+
+unsigned int hash_djb2(char* key, size_t table_size) {
+    unsigned int hash = 5381;
+    while (*key) {
+        hash = ((hash << 5) + hash) + *key++;
+    }
+    return hash % table_size;
+}
 
 Entry* create_entry(char* key, size_t value) {
     Entry* new_entry = malloc(sizeof(Entry));
