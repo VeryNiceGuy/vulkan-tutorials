@@ -999,7 +999,6 @@ void destroySynchObjects() {
 
 void initialize(HINSTANCE hInstance, HWND hWnd) {
     windowHandle = hWnd;
-
     camera_init_quaternion(
         &camera,
         (Quaternion) { .w = 1.0f, .x = 0.0f, .y = 0.0f, .z = 0.0f },
@@ -1017,17 +1016,13 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
     createPipeline();
     createFramebuffers();
     createUniformBuffers();
-
     createTextureImage();
     createTextureImageView();
     createTextureSampler();
-
     createDescriptorPool();
     createDescriptorSet();
-
     createVertexBuffer(physicalDevice, device, &vertexBuffer, &vertexBufferMemory, sizeof(vertices), vertices);
     createIndexBuffer(physicalDevice, device, &indexBuffer, &indexBufferMemory, sizeof(indices), indices);
-
     createSynchObjects();
     createCommandBuffers();
 }
@@ -1121,72 +1116,6 @@ void moveRight() {
 void moveBackward() {
     camera_move(&camera, -0.1f);
 }
-
-
-Quaternion correct_roll(Quaternion current_rotation) {
-    return quaternion_multiply(
-        current_rotation,
-        quaternion_angle_axis(
-            -quaternion_extract_roll_angle(current_rotation),
-            vector3_normalize(/*quaternion_rotate_vector(current_rotation, */vector3_unit_z/*)*/)));
-}
-
-/*
-Quaternion quaternion_from_forward_up(Vector3 forward, Vector3 up) {
-    Vector3 right = vector3_normalize(vector3_cross(up, forward));
-    up = vector3_normalize(vector3_cross(forward, right));
-
-    Quaternion q;
-    q.w = sqrtf(1.0f + right.x + up.y + forward.z) * 0.5f;
-    float w4 = (4.0f * q.w);
-    q.x = (up.z - forward.y) / w4;
-    q.y = (forward.x - right.z) / w4;
-    q.z = (right.y - up.x) / w4;
-
-    return q;
-}
-
-Quaternion correct_roll(Quaternion current_rotation) {
-    Vector3 forward = quaternion_rotate_vector(current_rotation, (Vector3) { 0.0f, 0.0f, 1.0f });
-    Vector3 world_up = { 0.0f, 1.0f, 0.0f };
-    Vector3 right = vector3_normalize(vector3_cross(world_up, forward));
-    Vector3 corrected_up = vector3_normalize(vector3_cross(forward, right));
-    Quaternion corrected_rotation = quaternion_from_forward_up(forward, corrected_up);
-
-    return corrected_rotation;
-}*/
-
-//
-/*
-Quaternion correct_roll(Quaternion current_rotation) {
-    // Extract forward and right vectors from the current rotation
-    Vector3 forward = quaternion_rotate_vector(current_rotation, (Vector3) { 0.0f, 0.0f, 1.0f });
-    Vector3 right = quaternion_rotate_vector(current_rotation, (Vector3) { 1.0f, 0.0f, 0.0f });
-
-    // Calculate the world up vector
-    Vector3 world_up = { 0.0f, 1.0f, 0.0f };
-    Vector3 actual_up = vector3_cross(forward, right);
-    actual_up = vector3_normalize(actual_up);
-
-    // Calculate the deviation between actual up and world up
-    Vector3 cross = vector3_cross(actual_up, world_up);
-    float dot = actual_up.x * world_up.x + actual_up.y * world_up.y + actual_up.z * world_up.z;
-    float angle = acosf(dot);
-
-    // Check if the angle is significant to correct
-    if (fabsf(angle) < 0.0001f) {
-        return current_rotation;
-    }
-
-    // Normalize the correction axis
-    Vector3 correction_axis = vector3_normalize(cross);
-    Quaternion correction = quaternion_angle_axis(angle * 180.0f / M_PI, correction_axis);
-    Quaternion corrected_rotation = quaternion_multiply(correction, current_rotation);
-
-    return corrected_rotation;
-}*/
-
-
 
 void mouseMove(float x, float y) {
     camera_pitch(&camera, radians(y * -0.1f));
