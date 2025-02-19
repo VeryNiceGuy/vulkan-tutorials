@@ -33,5 +33,5 @@ void free_dynamic_array(DynamicArray* array) {
     array->elements = NULL;
     array->size = 0;
     array->capacity = 0;
-    array->element_size = NULL;
+    array->element_size = 0;
 }

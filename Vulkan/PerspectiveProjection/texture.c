@@ -1,6 +1,7 @@
 #include "texture.h"
 #include "tga.h"
 #include "memory.h"
+#include <string.h>
 
 void createTextureImageFromFile(
     char* filename,

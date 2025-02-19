@@ -110,7 +110,6 @@ void createSwapchain(
     uint32_t presentQueueFamilyIndex,
     Swapchain* swapchain
 ) {
-
     swapchain->physicalDevice = physicalDevice;
     swapchain->device = device;
     swapchain->hWnd = hWnd;

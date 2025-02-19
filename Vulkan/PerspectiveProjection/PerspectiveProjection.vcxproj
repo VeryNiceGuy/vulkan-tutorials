@@ -167,13 +167,17 @@
     <ClInclude Include="dual_quaternion.h" />
     <ClInclude Include="dynamic_array.h" />
     <ClInclude Include="hashtable.h" />
+    <ClInclude Include="light.h" />
     <ClInclude Include="matrix4x4.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="mesh.h" />
     <ClInclude Include="obj_loader.h" />
     <ClInclude Include="perspective_projection.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="quaternion.h" />
     <ClInclude Include="render_pass.h" />
+    <ClInclude Include="scene.h" />
+    <ClInclude Include="scene_object.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="string_utils.h" />
     <ClInclude Include="surface.h" />

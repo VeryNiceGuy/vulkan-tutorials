@@ -1,6 +1,11 @@
 #pragma once
 #include<vulkan/vulkan.h>
 
+typedef struct Buffer {
+    VkBuffer buffer;
+    VkDeviceMemory memory;
+} Buffer;
+
 void createIndexBuffer(
     VkPhysicalDevice physicalDevice,
     VkDevice device,

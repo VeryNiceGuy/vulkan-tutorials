@@ -24,6 +24,9 @@
     <Filter Include="obj_loader">
       <UniqueIdentifier>{dbd28002-7bdb-4c6e-a129-f9842f98c94d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="scene">
+      <UniqueIdentifier>{3d96c8f4-de86-4046-9473-170e26fc0f3a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="perspective_projection.c">
@@ -57,9 +60,6 @@
       <Filter>mathematics</Filter>
     </ClCompile>
     <ClCompile Include="buffer.c">
-      <Filter>graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="camera.c">
       <Filter>graphics</Filter>
     </ClCompile>
     <ClCompile Include="swapchain.c">
@@ -101,6 +101,9 @@
     <ClCompile Include="descriptor.c">
       <Filter>graphics</Filter>
     </ClCompile>
+    <ClCompile Include="camera.c">
+      <Filter>scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="obj_loader.h">
@@ -128,9 +131,6 @@
       <Filter>mathematics</Filter>
     </ClInclude>
     <ClInclude Include="swapchain.h">
-      <Filter>graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="camera.h">
       <Filter>graphics</Filter>
     </ClInclude>
     <ClInclude Include="buffer.h">
@@ -177,6 +177,21 @@
     </ClInclude>
     <ClInclude Include="descriptor.h">
       <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="scene_object.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="light.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="scene.h">
+      <Filter>scene</Filter>
+    </ClInclude>
+    <ClInclude Include="mesh.h">
+      <Filter>scene</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
