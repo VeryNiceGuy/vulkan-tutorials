@@ -104,6 +104,9 @@
     <ClCompile Include="camera.c">
       <Filter>scene</Filter>
     </ClCompile>
+    <ClCompile Include="mesh.c">
+      <Filter>scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="obj_loader.h">
