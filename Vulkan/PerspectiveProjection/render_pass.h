@@ -6,3 +6,5 @@ void createRenderPass(
 	VkFormat format,
 	VkRenderPass* renderPass
 );
+
+void destroyRenderPass(VkDevice device, VkRenderPass renderPass);

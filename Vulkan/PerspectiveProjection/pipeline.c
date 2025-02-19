@@ -7,7 +7,10 @@ void createPipeline(
     uint32_t descriptorSetLayoutCount,
     VkDescriptorSetLayout* descriptorSetLayouts,
     VkRenderPass renderPass,
-    Pipeline* pipeline) {
+    Pipeline* pipeline
+) {
+
+    pipeline->device = device;
 
     VkPipelineShaderStageCreateInfo shaderStageCreateInfos[2] = { {
             .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -120,4 +123,10 @@ void createPipeline(
 
     vkCreatePipelineCache(device, &pipelineCacheCreateInfo, NULL, &pipeline->cache);
     vkCreateGraphicsPipelines(device, pipeline->cache, 1, &pipelineCreateInfo, NULL, &pipeline->pipeline);
+}
+
+void destroyPipeline(Pipeline* pipeline) {
+    vkDestroyPipeline(pipeline->device, pipeline->pipeline, NULL);
+    vkDestroyPipelineLayout(pipeline->device, pipeline->layout, NULL);
+    vkDestroyPipelineCache(pipeline->device, pipeline->cache, NULL);
 }

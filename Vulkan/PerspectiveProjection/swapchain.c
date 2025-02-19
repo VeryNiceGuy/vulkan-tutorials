@@ -58,8 +58,8 @@ static void adjustImageExtent(Swapchain* swapchain, VkSurfaceCapabilitiesKHR* ca
 static bool isSurfaceFormatSupported(
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface,
-    VkSurfaceFormatKHR* surfaceFormat) {
-
+    VkSurfaceFormatKHR* surfaceFormat
+) {
     uint32_t surfaceFormatCount;
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &surfaceFormatCount, NULL);
 
@@ -81,8 +81,8 @@ static bool isSurfaceFormatSupported(
 static bool isPresentModeSupported(
     VkPhysicalDevice physicalDevice,
     VkSurfaceKHR surface,
-    VkPresentModeKHR presentMode) {
-
+    VkPresentModeKHR presentMode
+) {
     uint32_t presentModeCount;
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, NULL);
 
@@ -99,7 +99,7 @@ static bool isPresentModeSupported(
     return result;
 }
 
-void createSwapchain2(
+void createSwapchain(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
     HWND hWnd,
@@ -108,7 +108,8 @@ void createSwapchain2(
     uint32_t height,
     uint32_t graphicsQueueFamilyIndex,
     uint32_t presentQueueFamilyIndex,
-    Swapchain* swapchain) {
+    Swapchain* swapchain
+) {
 
     swapchain->physicalDevice = physicalDevice;
     swapchain->device = device;
@@ -158,7 +159,10 @@ void createSwapchain2(
         .queueFamilyIndexCount = 0
     };
 
-    uint32_t queueFamilyIndices[] = { graphicsQueueFamilyIndex, presentQueueFamilyIndex };
+    uint32_t queueFamilyIndices[] = {
+        graphicsQueueFamilyIndex,
+        presentQueueFamilyIndex
+    };
 
     if (graphicsQueueFamilyIndex != presentQueueFamilyIndex) {
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -220,7 +224,10 @@ void recreateSwapchain(Swapchain* swapchain) {
         .queueFamilyIndexCount = 0
     };
 
-    uint32_t queueFamilyIndices[] = { swapchain->graphicsQueueFamilyIndex, swapchain->presentQueueFamilyIndex };
+    uint32_t queueFamilyIndices[] = {
+        swapchain->graphicsQueueFamilyIndex,
+        swapchain->presentQueueFamilyIndex
+    };
 
     if (swapchain->graphicsQueueFamilyIndex != swapchain->presentQueueFamilyIndex) {
         swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -238,7 +245,29 @@ void recreateSwapchain(Swapchain* swapchain) {
     vkDestroySwapchainKHR(swapchain->device, oldSwapchain, NULL);
 }
 
-void destroySwapchain2(Swapchain* swapchain) {
+void destroySwapchain(Swapchain* swapchain) {
     destroyImageViews(swapchain->device, swapchain->swapchainImageCount, swapchain->swapchainImageViews);
     vkDestroySwapchainKHR(swapchain->device, swapchain->swapchain, NULL);
+}
+
+void enterFullscreenMode(Swapchain* swapchain) {
+    HMONITOR monitor = MonitorFromWindow(swapchain->hWnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFOEX monitorInfo = {
+        .cbSize = sizeof(MONITORINFOEX)
+    };
+    GetMonitorInfo(monitor, &monitorInfo);
+
+    /*
+    int monitorX = monitorInfo.rcMonitor.left;
+    int monitorY = monitorInfo.rcMonitor.top;
+    */
+    int monitorWidth = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
+    int monitorHeight = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
+
+    swapchain->imageExtent = (VkExtent2D) {
+        .width = monitorWidth,
+        .height = monitorHeight
+    };
+
+    vkAcquireFullScreenExclusiveModeEXT2(swapchain->device, swapchain->swapchain);
 }

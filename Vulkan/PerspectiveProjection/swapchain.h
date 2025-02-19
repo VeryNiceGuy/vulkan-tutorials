@@ -17,7 +17,7 @@ typedef struct Swapchain {
     VkImageView* swapchainImageViews;
 } Swapchain;
 
-void createSwapchain2(
+void createSwapchain(
     VkPhysicalDevice physicalDevice,
     VkDevice device,
     HWND hWnd,
@@ -30,4 +30,5 @@ void createSwapchain2(
 );
 
 void recreateSwapchain(Swapchain* swapchain);
-void destroySwapchain2(Swapchain* swapchain);
+void destroySwapchain(Swapchain* swapchain);
+void enterFullscreenMode(Swapchain* swapchain);

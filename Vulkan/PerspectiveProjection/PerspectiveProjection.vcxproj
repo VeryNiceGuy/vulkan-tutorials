@@ -133,6 +133,9 @@
     <ClCompile Include="bmp.c" />
     <ClCompile Include="buffer.c" />
     <ClCompile Include="camera.c" />
+    <ClCompile Include="debug.c" />
+    <ClCompile Include="descriptor.c" />
+    <ClCompile Include="device.c" />
     <ClCompile Include="dual_quaternion.c" />
     <ClCompile Include="dynamic_array.c" />
     <ClCompile Include="hashtable.c" />
@@ -146,6 +149,7 @@
     <ClCompile Include="render_pass.c" />
     <ClCompile Include="shader.c" />
     <ClCompile Include="string_utils.c" />
+    <ClCompile Include="surface.c" />
     <ClCompile Include="swapchain.c" />
     <ClCompile Include="texture.c" />
     <ClCompile Include="tga.c" />
@@ -157,6 +161,9 @@
     <ClInclude Include="buffer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="debug.h" />
+    <ClInclude Include="descriptor.h" />
+    <ClInclude Include="device.h" />
     <ClInclude Include="dual_quaternion.h" />
     <ClInclude Include="dynamic_array.h" />
     <ClInclude Include="hashtable.h" />
@@ -169,6 +176,7 @@
     <ClInclude Include="render_pass.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="string_utils.h" />
+    <ClInclude Include="surface.h" />
     <ClInclude Include="swapchain.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="tga.h" />

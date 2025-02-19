@@ -89,6 +89,18 @@
     <ClCompile Include="window_utils.c">
       <Filter>utilities</Filter>
     </ClCompile>
+    <ClCompile Include="surface.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="device.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="debug.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="descriptor.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="obj_loader.h">
@@ -153,6 +165,18 @@
     </ClInclude>
     <ClInclude Include="window_utils.h">
       <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="surface.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="device.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="descriptor.h">
+      <Filter>graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

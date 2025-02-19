@@ -14,6 +14,9 @@
 #include "pipeline.h"
 #include "texture.h"
 #include "render_pass.h"
+#include "surface.h"
+#include "device.h"
+#include "debug.h"
 
 HWND windowHandle;
 VkInstance instance;
@@ -93,48 +96,6 @@ VkImageView textureImageView;
 VkSampler textureSampler;
 VkDescriptorSet descriptorSet;
 
-void querySupportedFormats() {
-    VkFormat formats[] = {
-        VK_FORMAT_R8G8B8A8_UNORM,
-        VK_FORMAT_B8G8R8A8_UNORM,
-        VK_FORMAT_R8G8B8_UNORM,
-        VK_FORMAT_B8G8R8_UNORM,
-        VK_FORMAT_R8_UNORM,
-        VK_FORMAT_D32_SFLOAT,
-        // Add more formats as needed
-    };
-
-    for (size_t i = 0; i < sizeof(formats) / sizeof(formats[0]); ++i) {
-        VkFormat format = formats[i];
-
-        VkPhysicalDeviceImageFormatInfo2 formatInfo = {0};
-        formatInfo.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2;
-        formatInfo.format = format;
-        formatInfo.type = VK_IMAGE_TYPE_2D;
-        formatInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        formatInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
-        formatInfo.flags = 0;
-
-        VkImageFormatProperties2 imageFormatProperties = {0};
-        imageFormatProperties.sType = VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2;
-
-        VkResult result = vkGetPhysicalDeviceImageFormatProperties2(physicalDevice, &formatInfo, &imageFormatProperties);
-
-        if (result == VK_SUCCESS) {
-            printf("Format %d is supported.\n", format);
-            VkImageFormatProperties properties = imageFormatProperties.imageFormatProperties;
-            printf("  Max Extent: %d x %d x %d\n", properties.maxExtent.width, properties.maxExtent.height, properties.maxExtent.depth);
-            printf("  Max Mip Levels: %d\n", properties.maxMipLevels);
-            printf("  Max Array Layers: %d\n", properties.maxArrayLayers);
-            printf("  Sample Counts: %d\n", properties.sampleCounts);
-            printf("  Max Resource Size: %llu\n", properties.maxResourceSize);
-        }
-        else {
-            printf("Format %d is not supported.\n", format);
-        }
-    }
-}
-
 void destroyFramebuffers() {
     for (uint32_t i = 0; i < swapchain.swapchainImageCount; ++i) {
         vkDestroyFramebuffer(device, framebuffers[i], NULL);
@@ -173,19 +134,6 @@ void createDescriptorSetLayout() {
     }
 }
 
-void createDescriptorPool() {
-    VkDescriptorPoolSize poolSizes[] = { { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 }, { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 } };
-
-    VkDescriptorPoolCreateInfo poolInfo = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .poolSizeCount = 2,
-        .pPoolSizes = poolSizes,
-        .maxSets = MAX_FRAMES_IN_FLIGHT
-    };
-
-    vkCreateDescriptorPool(device, &poolInfo, NULL, &descriptorPool);
-}
-
 void createDescriptorSet() {
     VkDescriptorSetAllocateInfo allocInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -193,7 +141,6 @@ void createDescriptorSet() {
         .descriptorSetCount = MAX_FRAMES_IN_FLIGHT,
         .pSetLayouts = descriptorSetLayouts
     };
-
     vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
 
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -252,126 +199,6 @@ void updateUniformBuffer(uint32_t currentFrame) {
     vkUnmapMemory(device, uniformBuffersMemory[currentFrame]);
 }
 
-void createLogicalDevice() {
-    float queuePriority = 1.0f;
-    const char* deviceExtensions[] = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
-    };
-
-    VkDeviceQueueCreateInfo deviceQueueCreateInfos[2] = { {
-            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-            .queueFamilyIndex = graphicsQueueFamilyIndex,
-            .queueCount = 1,
-            .pQueuePriorities = &queuePriority
-        }, {
-            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-            .queueFamilyIndex = presentQueueFamilyIndex,
-            .queueCount = 1,
-            .pQueuePriorities = &queuePriority
-        }
-    };
-
-    VkDeviceCreateInfo deviceCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pQueueCreateInfos = deviceQueueCreateInfos,
-        .queueCreateInfoCount = graphicsQueueFamilyIndex != presentQueueFamilyIndex ? 2 : 1,
-        .ppEnabledExtensionNames = deviceExtensions,
-        .enabledExtensionCount = 2
-    };
-
-    VkResult res = vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, &device);
-    vkAcquireFullScreenExclusiveModeEXT2 = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkGetDeviceProcAddr(device, "vkAcquireFullScreenExclusiveModeEXT");
-
-    vkGetDeviceQueue(device, graphicsQueueFamilyIndex, 0, &graphicsQueue);
-
-    if (graphicsQueueFamilyIndex != presentQueueFamilyIndex) {
-        vkGetDeviceQueue(device, presentQueueFamilyIndex, 0, &presentQueue);
-    }
-    else {
-        presentQueue = graphicsQueue;
-    }
-}
-
-void getPhysicalDevice() {
-    int32_t physicalDeviceCount = 0;
-    vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, NULL);
-
-    VkPhysicalDevice* physicalDevices = malloc(sizeof(VkPhysicalDevice) * physicalDeviceCount);
-    vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices);
-
-    physicalDevice = physicalDevices[1];
-    free(physicalDevices);
-}
-
-void getQueueFamilies() {
-    uint32_t queueFamilyPropertyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertyCount, NULL);
-
-    VkQueueFamilyProperties* queueFamilyProperties = malloc(sizeof(VkQueueFamilyProperties) * queueFamilyPropertyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyPropertyCount, queueFamilyProperties);
-
-    bool graphicsQueueFamily = false;
-    bool presentQueueFamily = false;
-
-    for (uint32_t i = 0; i < queueFamilyPropertyCount; ++i) {
-        if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            graphicsQueueFamilyIndex = i;
-        }
-
-        VkBool32 presentSupport;
-        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, i, surface, &presentSupport);
-
-        if (presentSupport) {
-            presentQueueFamilyIndex = i;
-        }
-
-        if (graphicsQueueFamily && presentQueueFamily) {
-            break;
-        }
-    }
-
-    free(queueFamilyProperties);
-}
-
-//
-
-VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData) {
-
-    printf("Validation layer: %s\n", pCallbackData->pMessage);
-    return VK_FALSE;
-}
-
-VkDebugUtilsMessengerCreateInfoEXT createDebugMessengerCreateInfo() {
-    VkDebugUtilsMessengerCreateInfoEXT createInfo = {
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
-        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-        .pfnUserCallback = debugCallback
-    };
-
-    return createInfo;
-}
-
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
-    PFN_vkCreateDebugUtilsMessengerEXT func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    if (func != NULL) {
-        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-    }
-    else {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
-}
-
 void createInstance() {
     VkApplicationInfo applicationInfo = {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -403,27 +230,6 @@ void createInstance() {
     vkCreateInstance(&instanceCreateInfo, NULL, &instance);
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo = createDebugMessengerCreateInfo();
     CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, NULL, &debugMessenger);
-}
-
-void destroyRenderPass() {
-    vkDestroyRenderPass(device, renderPass, NULL);
-    renderPass = VK_NULL_HANDLE;
-}
-
-void createSurface(HINSTANCE hInstance, HWND hWnd) {
-    VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
-        .pNext = NULL,
-        .hinstance = hInstance,
-        .hwnd = hWnd
-    };
-
-    vkCreateWin32SurfaceKHR(instance, &surfaceCreateInfo, NULL, &surface);
-}
-
-void destroySurface() {
-    vkDestroySurfaceKHR(instance, surface, NULL);
-    surface = VK_NULL_HANDLE;
 }
 
 void createFramebuffers() {
@@ -544,11 +350,20 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
         (Vector3) { .x = 0, .y = 0, .z = 0 });
 
     createInstance();
-    createSurface(hInstance, hWnd);
-    getPhysicalDevice();
-    getQueueFamilies();
-    createLogicalDevice();
-    createSwapchain2(
+    createSurface(hInstance, hWnd, instance, &surface);
+    getPhysicalDevice(instance, &physicalDevice);
+    getQueueFamilies(physicalDevice, surface, &graphicsQueueFamilyIndex, &presentQueueFamilyIndex);
+
+    createLogicalDevice(
+        physicalDevice,
+        graphicsQueueFamilyIndex,
+        presentQueueFamilyIndex,
+        &device,
+        &graphicsQueue,
+        &presentQueue);
+
+    vkAcquireFullScreenExclusiveModeEXT2 = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkGetDeviceProcAddr(device, "vkAcquireFullScreenExclusiveModeEXT");
+    createSwapchain(
         physicalDevice,
         device,
         hWnd,
@@ -569,7 +384,12 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
     createTextureImageView(device, textureImage, &textureImageView);
     createTextureSampler(device, &textureSampler);
 
-    createDescriptorPool();
+    VkDescriptorPoolSize poolSizes[] = {
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
+    };
+    createDescriptorPool(device, 2, poolSizes, MAX_FRAMES_IN_FLIGHT, &descriptorPool);
+
     createDescriptorSet();
     createVertexBuffer(physicalDevice, device, &vertexBuffer, &vertexBufferMemory, sizeof(vertices), vertices);
     createIndexBuffer(physicalDevice, device, &indexBuffer, &indexBufferMemory, sizeof(indices), indices);
@@ -582,7 +402,13 @@ void render() {
     updateUniformBuffer(currentFrame);
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(device, swapchain.swapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(
+        device,
+        swapchain.swapchain,
+        UINT64_MAX,
+        imageAvailableSemaphores[currentFrame],
+        VK_NULL_HANDLE,
+        &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         //createSwapchain();
@@ -624,10 +450,7 @@ void render() {
 void deinitialize() {
     vkDeviceWaitIdle(device);
     destroySynchObjects();
-
-    vkDestroyPipeline(device, pipeline.pipeline, NULL);
-    vkDestroyPipelineLayout(device, pipeline.layout, NULL);
-    vkDestroyPipelineCache(device, pipeline.cache, NULL);
+    destroyPipeline(&pipeline);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device, uniformBuffers[i], NULL);
@@ -642,11 +465,11 @@ void deinitialize() {
 
     destroyFramebuffers();
     destroyCommandBuffers();
-    destroyRenderPass();
-    destroySwapchain2(&swapchain);
-    destroySurface();
+    destroyRenderPass(device, renderPass);
+    destroySwapchain(&swapchain);
+    destroySurface(surface, instance);
 
-    vkDestroyDevice(device, NULL);
+    destroyLogicalDevice(device);
     vkDestroyInstance(instance, NULL);
 }
 

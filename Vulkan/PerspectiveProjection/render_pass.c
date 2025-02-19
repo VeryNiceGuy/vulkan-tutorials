@@ -1,6 +1,10 @@
 #include "render_pass.h"
 
-void createRenderPass(VkDevice device, VkFormat format, VkRenderPass* renderPass) {
+void createRenderPass(
+    VkDevice device,
+    VkFormat format,
+    VkRenderPass* renderPass
+) {
     VkAttachmentDescription attachmentDescription = {
         .format = format,
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -32,4 +36,8 @@ void createRenderPass(VkDevice device, VkFormat format, VkRenderPass* renderPass
     };
 
     vkCreateRenderPass(device, &renderPassCreateInfo, NULL, renderPass);
+}
+
+void destroyRenderPass(VkDevice device, VkRenderPass renderPass) {
+    vkDestroyRenderPass(device, renderPass, NULL);
 }

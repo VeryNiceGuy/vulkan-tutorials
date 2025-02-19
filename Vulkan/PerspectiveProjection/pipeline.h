@@ -5,6 +5,7 @@ typedef struct Pipeline {
 	VkPipeline pipeline;
 	VkPipelineLayout layout;
 	VkPipelineCache cache;
+    VkDevice device;
 } Pipeline;
 
 void createPipeline(
@@ -14,3 +15,5 @@ void createPipeline(
     VkRenderPass renderPass,
     Pipeline* pipeline
 );
+
+void destroyPipeline(Pipeline* pipeline);
