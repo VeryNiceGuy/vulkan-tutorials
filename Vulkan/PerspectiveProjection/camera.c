@@ -1,13 +1,23 @@
 #include "camera.h"
 
-void camera_init_euler_angles(Camera* camera, float yaw, float pitch, float roll, Vector3 position) {
+void camera_init_euler_angles(
+    Camera* camera,
+    float yaw,
+    float pitch,
+    float roll,
+    Vector3 position
+) {
     camera->rotation = quaternion_multiply(
         quaternion_angle_axis(yaw, vector3_unit_y),
         quaternion_multiply(quaternion_angle_axis(pitch, vector3_unit_x), quaternion_angle_axis(roll, vector3_unit_z)));
     camera->position = position;
 }
 
-void camera_init_quaternion(Camera* camera, Quaternion rotation, Vector3 position) {
+void camera_init_quaternion(
+    Camera* camera,
+    Quaternion rotation,
+    Vector3 position
+) {
     camera->rotation = rotation;
     camera->position = position;
 }

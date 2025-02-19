@@ -9,7 +9,6 @@ void createPipeline(
     VkRenderPass renderPass,
     Pipeline* pipeline
 ) {
-
     pipeline->device = device;
 
     VkPipelineShaderStageCreateInfo shaderStageCreateInfos[2] = { {

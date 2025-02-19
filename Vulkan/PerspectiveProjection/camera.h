@@ -10,8 +10,19 @@ typedef struct Camera {
 	Quaternion rotation;
 } Camera;
 
-void camera_init_euler_angles(Camera* camera, float yaw, float pitch, float roll, Vector3 position);
-void camera_init_quaternion(Camera* camera, Quaternion rotation, Vector3 position);
+void camera_init_euler_angles(
+	Camera* camera,
+	float yaw,
+	float pitch,
+	float roll,
+	Vector3 position
+);
+
+void camera_init_quaternion(
+	Camera* camera,
+	Quaternion rotation,
+	Vector3 position
+);
 
 void camera_yaw(Camera* camera, float angle);
 void camera_pitch(Camera* camera, float angle);
