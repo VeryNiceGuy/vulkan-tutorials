@@ -9,27 +9,6 @@ int prevMouseY = 0;
 int deltaX = 0;
 int deltaY = 0;
 
-/*
-void switchToFullscreen(HWND hwnd, int width, int height) {
-    LONG style = GetWindowLong(hwnd, GWL_STYLE);
-    style &= ~WS_OVERLAPPEDWINDOW;
-    style |= WS_POPUP;
-
-    SetWindowLong(hwnd, GWL_STYLE, style);
-    SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
-    ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-}*/
-
-void restoreWindowed(HWND hwnd) {
-    LONG style = GetWindowLong(hwnd, GWL_STYLE);
-    style |= WS_OVERLAPPEDWINDOW;
-    style &= ~WS_POPUP;
-
-    SetWindowLong(hwnd, GWL_STYLE, style);
-    SetWindowPos(hwnd, NULL, 100, 100, 800, 600, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
-    ShowWindow(hwnd, SW_SHOWNORMAL);
-}
-
 void RegisterRawInput(HWND hwnd) {
     RAWINPUTDEVICE rid;
     rid.usUsagePage = 0x01;
@@ -74,11 +53,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
         case VK_SPACE:
             enableFullScreen();
             if (!fullscreen) {
-                switchToFullscreen(hWnd, 1920, 1080);
+                //window_fullscreen(hWnd, 1920, 1080);
                 fullscreen = true;
             }
             else {
-                restoreWindowed(hWnd);
+                //restoreWindowed(hWnd);
                 fullscreen = false;
             }
             break;

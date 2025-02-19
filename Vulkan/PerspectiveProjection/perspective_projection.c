@@ -13,6 +13,7 @@
 #include "shader.h"
 #include "pipeline.h"
 #include "texture.h"
+#include "render_pass.h"
 
 HWND windowHandle;
 VkInstance instance;
@@ -65,12 +66,10 @@ struct Vertex vertices[4] = {
     {20.0f, 0.0f, 20.0f, 1.0f, 1.0f}
 };
 
-
 unsigned int indices[6] = {
     0, 1, 2,
     1, 3, 2
 };
-
 
 struct MVP {
     Matrix4x4 model;
@@ -406,40 +405,6 @@ void createInstance() {
     CreateDebugUtilsMessengerEXT(instance, &debugCreateInfo, NULL, &debugMessenger);
 }
 
-void createRenderPass() {
-    VkAttachmentDescription attachmentDescription = {
-        .format = swapchain.surfaceFormat.format,
-        .samples = VK_SAMPLE_COUNT_1_BIT,
-        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-        .initialLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-    };
-
-    VkAttachmentReference colorAttachmentReference = {
-        .attachment = 0,
-        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-    };
-
-    VkSubpassDescription subpassDescription = {
-        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-        .colorAttachmentCount = 1,
-        .pColorAttachments = &colorAttachmentReference
-    };
-
-    VkRenderPassCreateInfo renderPassCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-        .attachmentCount = 1,
-        .pAttachments = &attachmentDescription,
-        .subpassCount = 1,
-        .pSubpasses = &subpassDescription
-    };
-
-    vkCreateRenderPass(device, &renderPassCreateInfo, NULL, &renderPass);
-}
-
 void destroyRenderPass() {
     vkDestroyRenderPass(device, renderPass, NULL);
     renderPass = VK_NULL_HANDLE;
@@ -546,16 +511,6 @@ void createCommandBuffers() {
     }
 }
 
-void switchToFullscreen(HWND hwnd, int width, int height) {
-    LONG style = GetWindowLong(hwnd, GWL_STYLE);
-    style &= ~WS_OVERLAPPEDWINDOW;
-    style |= WS_POPUP;
-
-    SetWindowLong(hwnd, GWL_STYLE, style);
-    SetWindowPos(hwnd, HWND_TOP, 0, 0, width, height, SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
-    ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-}
-
 void createSynchObjects() {
     VkSemaphoreCreateInfo semaphoreInfo = {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
@@ -604,7 +559,7 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
         presentQueueFamilyIndex,
         &swapchain);
 
-    createRenderPass();
+    createRenderPass(device, swapchain.surfaceFormat.format, &renderPass);
     createDescriptorSetLayout();
     createPipeline(device, 2, descriptorSetLayouts, renderPass, &pipeline);
     createFramebuffers();

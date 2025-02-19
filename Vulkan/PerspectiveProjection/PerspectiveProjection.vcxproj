@@ -143,12 +143,14 @@
     <ClCompile Include="perspective_projection.c" />
     <ClCompile Include="pipeline.c" />
     <ClCompile Include="quaternion.c" />
+    <ClCompile Include="render_pass.c" />
     <ClCompile Include="shader.c" />
     <ClCompile Include="string_utils.c" />
     <ClCompile Include="swapchain.c" />
     <ClCompile Include="texture.c" />
     <ClCompile Include="tga.c" />
     <ClCompile Include="vector3.c" />
+    <ClCompile Include="window_utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bmp.h" />
@@ -164,12 +166,14 @@
     <ClInclude Include="perspective_projection.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="quaternion.h" />
+    <ClInclude Include="render_pass.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="string_utils.h" />
     <ClInclude Include="swapchain.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="tga.h" />
     <ClInclude Include="vector3.h" />
+    <ClInclude Include="window_utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
