@@ -131,7 +131,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="bmp.c" />
-    <ClCompile Include="buffers.c" />
+    <ClCompile Include="buffer.c" />
     <ClCompile Include="camera.c" />
     <ClCompile Include="dual_quaternion.c" />
     <ClCompile Include="dynamic_array.c" />
@@ -141,16 +141,20 @@
     <ClCompile Include="memory.c" />
     <ClCompile Include="obj_loader.c" />
     <ClCompile Include="perspective_projection.c" />
+    <ClCompile Include="pipeline.c" />
     <ClCompile Include="quaternion.c" />
+    <ClCompile Include="shader.c" />
     <ClCompile Include="string_utils.c" />
     <ClCompile Include="swapchain.c" />
+    <ClCompile Include="texture.c" />
     <ClCompile Include="tga.c" />
     <ClCompile Include="vector3.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bmp.h" />
-    <ClInclude Include="buffers.h" />
+    <ClInclude Include="buffer.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="common.h" />
     <ClInclude Include="dual_quaternion.h" />
     <ClInclude Include="dynamic_array.h" />
     <ClInclude Include="hashtable.h" />
@@ -158,8 +162,12 @@
     <ClInclude Include="memory.h" />
     <ClInclude Include="obj_loader.h" />
     <ClInclude Include="perspective_projection.h" />
+    <ClInclude Include="pipeline.h" />
     <ClInclude Include="quaternion.h" />
+    <ClInclude Include="shader.h" />
     <ClInclude Include="string_utils.h" />
+    <ClInclude Include="swapchain.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="tga.h" />
     <ClInclude Include="vector3.h" />
   </ItemGroup>

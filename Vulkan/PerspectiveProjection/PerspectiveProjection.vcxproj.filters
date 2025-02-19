@@ -5,66 +5,38 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\obj">
-      <UniqueIdentifier>{dbd28002-7bdb-4c6e-a129-f9842f98c94d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\hash">
-      <UniqueIdentifier>{948903f0-7ceb-4ad1-9f14-801f12520a0f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="image_loaders">
       <UniqueIdentifier>{fe476c36-1aa2-4d2d-a4d0-09a20a9385c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="mathematics">
+      <UniqueIdentifier>{a83f9393-508d-44e8-a5d3-9900f0e7361f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="graphics">
+      <UniqueIdentifier>{75507f60-4403-4e61-88ed-ee2b5f8e0cd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utilities">
+      <UniqueIdentifier>{948903f0-7ceb-4ad1-9f14-801f12520a0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="obj_loader">
+      <UniqueIdentifier>{dbd28002-7bdb-4c6e-a129-f9842f98c94d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="perspective_projection.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vector3.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="matrix4x4.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="camera.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="dual_quaternion.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="quaternion.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="obj_loader.c">
-      <Filter>Source Files\obj</Filter>
-    </ClCompile>
-    <ClCompile Include="dynamic_array.c">
-      <Filter>Source Files\obj</Filter>
+      <Filter>obj_loader</Filter>
     </ClCompile>
     <ClCompile Include="hashtable.c">
-      <Filter>Source Files\hash</Filter>
-    </ClCompile>
-    <ClCompile Include="string_utils.c">
-      <Filter>Source Files\obj</Filter>
-    </ClCompile>
-    <ClCompile Include="buffers.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="memory.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="swapchain.c">
-      <Filter>Source Files</Filter>
+      <Filter>utilities</Filter>
     </ClCompile>
     <ClCompile Include="bmp.c">
       <Filter>image_loaders</Filter>
@@ -72,49 +44,103 @@
     <ClCompile Include="tga.c">
       <Filter>image_loaders</Filter>
     </ClCompile>
+    <ClCompile Include="matrix4x4.c">
+      <Filter>mathematics</Filter>
+    </ClCompile>
+    <ClCompile Include="dual_quaternion.c">
+      <Filter>mathematics</Filter>
+    </ClCompile>
+    <ClCompile Include="vector3.c">
+      <Filter>mathematics</Filter>
+    </ClCompile>
+    <ClCompile Include="quaternion.c">
+      <Filter>mathematics</Filter>
+    </ClCompile>
+    <ClCompile Include="buffer.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="swapchain.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="pipeline.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="shader.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="memory.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="dynamic_array.c">
+      <Filter>utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="string_utils.c">
+      <Filter>utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.c">
+      <Filter>graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="perspective_projection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="matrix4x4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vector3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dual_quaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="quaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dynamic_array.h">
-      <Filter>Source Files\obj</Filter>
-    </ClInclude>
     <ClInclude Include="obj_loader.h">
-      <Filter>Source Files\obj</Filter>
-    </ClInclude>
-    <ClInclude Include="string_utils.h">
-      <Filter>Source Files\obj</Filter>
+      <Filter>obj_loader</Filter>
     </ClInclude>
     <ClInclude Include="hashtable.h">
-      <Filter>Source Files\hash</Filter>
-    </ClInclude>
-    <ClInclude Include="buffers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="memory.h">
-      <Filter>Header Files</Filter>
+      <Filter>utilities</Filter>
     </ClInclude>
     <ClInclude Include="bmp.h">
       <Filter>image_loaders</Filter>
     </ClInclude>
     <ClInclude Include="tga.h">
       <Filter>image_loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="quaternion.h">
+      <Filter>mathematics</Filter>
+    </ClInclude>
+    <ClInclude Include="dual_quaternion.h">
+      <Filter>mathematics</Filter>
+    </ClInclude>
+    <ClInclude Include="vector3.h">
+      <Filter>mathematics</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix4x4.h">
+      <Filter>mathematics</Filter>
+    </ClInclude>
+    <ClInclude Include="swapchain.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="buffer.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="pipeline.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="memory.h">
+      <Filter>graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="dynamic_array.h">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="string_utils.h">
+      <Filter>utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="perspective_projection.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
