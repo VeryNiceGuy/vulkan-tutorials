@@ -1,6 +1,28 @@
 #pragma once
 #include "buffer.h"
 
+/*
+typedef struct RgbColor {
+    float r, g, b;
+} RgbColor;
+
+typedef struct MaterialProp {
+    RgbColor ambient;
+    RgbColor diffuse;
+    RgbColor specular;
+    RgbColor emissive;
+    float glossiness;
+    float opacity;
+    float transparency;
+    uint32_t illumination_model;
+    bool hasDiffuseMap;
+    bool hasNormalMap;
+    bool hasEmissiveMap;
+    bool hasAlphaMap;
+    bool hasBumpMap;
+    bool hasDisplacementMap;
+} MaterialProp;*/
+
 typedef struct Material {
     VkDescriptorImageInfo* diffuseMap;
     VkDescriptorImageInfo* normalMap;

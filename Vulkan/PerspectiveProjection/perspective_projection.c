@@ -17,6 +17,7 @@
 #include "surface.h"
 #include "device.h"
 #include "debug.h"
+#include "descriptor.h"
 
 HWND windowHandle;
 VkInstance instance;
@@ -37,14 +38,8 @@ VkQueue presentQueue;
 
 VkFramebuffer* framebuffers;
 
-VkBuffer vertexBuffer;
-VkDeviceMemory vertexBufferMemory;
-
-VkBuffer indexBuffer;
-VkDeviceMemory indexBufferMemory;
-
-VkBuffer uniformBuffer;
-VkDeviceMemory uniformBufferMemory;
+Buffer vertexBuffer;
+Buffer indexBuffer;
 
 VkCommandPool commandPool;
 VkCommandBuffer* commandBuffers;
@@ -54,8 +49,8 @@ VkSemaphore imageAvailableSemaphores[MAX_FRAMES_IN_FLIGHT];
 VkSemaphore renderFinishedSemaphores[MAX_FRAMES_IN_FLIGHT];
 VkFence inFlightFences[MAX_FRAMES_IN_FLIGHT];
 
-VkDeviceMemory uniformBuffersMemory[MAX_FRAMES_IN_FLIGHT];
-VkBuffer uniformBuffers[MAX_FRAMES_IN_FLIGHT];
+Buffer mvpBuffers[MAX_FRAMES_IN_FLIGHT];
+Buffer materialBuffers[MAX_FRAMES_IN_FLIGHT];
 
 size_t currentFrame = 0;
 
@@ -80,7 +75,29 @@ struct MVP {
     Matrix4x4 proj;
 };
 
+typedef struct RgbColor {
+    float r, g, b;
+} RgbColor;
+
+typedef struct MaterialProp {
+    RgbColor ambient;
+    RgbColor diffuse;
+    RgbColor specular;
+    RgbColor emissive;
+    float glossiness;
+    float opacity;
+    float transparency;
+    uint32_t illumination_model;
+    bool hasDiffuseMap;
+    bool hasNormalMap;
+    bool hasEmissiveMap;
+    bool hasAlphaMap;
+    bool hasBumpMap;
+    bool hasDisplacementMap;
+} MaterialProp;
+
 struct MVP mvp;
+MaterialProp materialProp;
 Camera camera;
 
 VkDescriptorSetLayout descriptorSetLayouts[MAX_FRAMES_IN_FLIGHT];
@@ -110,6 +127,8 @@ void destroyCommandBuffers() {
     commandBuffers = VK_NULL_HANDLE;
 }
 
+#define MAX_MATERIALS 10
+
 void createDescriptorSetLayout() {
     VkDescriptorSetLayoutBinding layoutBindings[] = {
         {
@@ -126,63 +145,69 @@ void createDescriptorSetLayout() {
         },
         {
             .binding = 2,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         },
         {
             .binding = 3,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         },
         {
             .binding = 4,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         },
         {
             .binding = 5,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         },
         {
             .binding = 6,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         },
         {
             .binding = 7,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         },
         {
             .binding = 8,
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
+            .descriptorCount = MAX_MATERIALS,
+            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+        },
+        {
+            .binding = 9,
+            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         }
     };
 
-    VkDescriptorBindingFlags bindingFlags[9] = { 0 };
+    VkDescriptorBindingFlags bindingFlags[10] = { 0 };
 
-    for (uint32_t i = 2; i < 9; ++i) {
+    for (uint32_t i = 2; i < 10; ++i) {
         bindingFlags[i] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT;
     }
 
     VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
-        .bindingCount = 9,
+        .bindingCount = 10,
         .pBindingFlags = bindingFlags
     };
 
     VkDescriptorSetLayoutCreateInfo layoutInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = 9,
+        .bindingCount = 10,
         .pBindings = layoutBindings,
         .pNext = &bindingFlagsCreateInfo
     };
@@ -202,8 +227,14 @@ void createDescriptorSet() {
     vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
 
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        VkDescriptorBufferInfo bufferInfo = {
-            .buffer = uniformBuffers[i],
+        VkDescriptorBufferInfo mvpBufferInfo = {
+            .buffer = mvpBuffers[i].buffer,
+            .offset = 0,
+            .range = VK_WHOLE_SIZE
+        };
+
+        VkDescriptorBufferInfo materialBufferInfo = {
+            .buffer = materialBuffers[i].buffer,
             .offset = 0,
             .range = VK_WHOLE_SIZE
         };
@@ -214,25 +245,37 @@ void createDescriptorSet() {
             .sampler = textureSampler
         };
 
-        VkWriteDescriptorSet descriptorWrites[] = {{
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSets[i],
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = 1,
-            .pBufferInfo = &bufferInfo
-        }, {
-            .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-            .dstSet = descriptorSets[i],
-            .dstBinding = 1,
-            .dstArrayElement = 0,
-            .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            .descriptorCount = 1,
-            .pImageInfo = &imageInfo
-        }};
+        VkWriteDescriptorSet descriptorWrites[] = {
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSets[i],
+                .dstBinding = 0,
+                .dstArrayElement = 0,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .descriptorCount = 1,
+                .pBufferInfo = &mvpBufferInfo
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSets[i],
+                .dstBinding = 1,
+                .dstArrayElement = 0,
+                .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                .descriptorCount = 1,
+                .pImageInfo = &imageInfo
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSets[i],
+                .dstBinding = 2,
+                .dstArrayElement = 0,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .descriptorCount = 1,
+                .pBufferInfo = &materialBufferInfo
+            }
+        };
 
-        vkUpdateDescriptorSets(device, 2, descriptorWrites, 0, NULL);
+        vkUpdateDescriptorSets(device, 3, descriptorWrites, 0, NULL);
     }
 }
 
@@ -243,8 +286,11 @@ void createUniformBuffers() {
         .proj = matrix4x4_perspective_fov_lh_gl(0.785398f, 800.0f / 600.0f, 0.1f, 100.0f)
     };
 
+    materialProp = (MaterialProp){ 0 };
+
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-        createUniformBuffer(physicalDevice, device, &uniformBuffers[i], &uniformBuffersMemory[i], sizeof(mvp));
+        createUniformBuffer(physicalDevice, device, &mvpBuffers[i], sizeof(mvp));
+        createUniformBuffer(physicalDevice, device, &materialBuffers[i], sizeof(materialProp));
     }
 }
 
@@ -252,9 +298,9 @@ void updateUniformBuffer(uint32_t currentFrame) {
     mvp.view = camera_calculate_view_matrix(&camera);
 
     void* data;
-    vkMapMemory(device, uniformBuffersMemory[currentFrame], 0, sizeof(mvp), 0, &data);
+    vkMapMemory(device, mvpBuffers[currentFrame].memory, 0, sizeof(mvp), 0, &data);
     memcpy(data, &mvp, sizeof(mvp));
-    vkUnmapMemory(device, uniformBuffersMemory[currentFrame]);
+    vkUnmapMemory(device, mvpBuffers[currentFrame].memory);
 }
 
 void createInstance() {
@@ -365,8 +411,8 @@ void createCommandBuffers() {
         vkCmdSetScissor(commandBuffers[i], 0, 1, &scissor);
 
         VkDeviceSize offsets[] = { 0 };
-        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer, offsets);
-        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, &vertexBuffer.buffer, offsets);
+        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.layout, 0, 1, &descriptorSets[currentFrame], 0, NULL);
         vkCmdDrawIndexed(commandBuffers[i], sizeof(indices) / sizeof(uint32_t), 1, 0, 0, 0);
@@ -444,13 +490,22 @@ void initialize(HINSTANCE hInstance, HWND hWnd) {
 
     VkDescriptorPoolSize poolSizes[] = {
         { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 },
-        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 },
+
+        { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_MATERIALS },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_MATERIALS },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_MATERIALS },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_MATERIALS },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_MATERIALS },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_MATERIALS },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_MATERIALS },
+        { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_MATERIALS },
     };
     createDescriptorPool(device, 2, poolSizes, MAX_FRAMES_IN_FLIGHT, &descriptorPool);
 
     createDescriptorSet();
-    createVertexBuffer(physicalDevice, device, &vertexBuffer, &vertexBufferMemory, sizeof(vertices), vertices);
-    createIndexBuffer(physicalDevice, device, &indexBuffer, &indexBufferMemory, sizeof(indices), indices);
+    createVertexBuffer(physicalDevice, device, &vertexBuffer, sizeof(vertices), vertices);
+    createIndexBuffer(physicalDevice, device, &indexBuffer, sizeof(indices), indices);
     createSynchObjects();
     createCommandBuffers();
 }
@@ -511,15 +566,12 @@ void deinitialize() {
     destroyPipeline(&pipeline);
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        vkDestroyBuffer(device, uniformBuffers[i], NULL);
-        vkFreeMemory(device, uniformBuffersMemory[i], NULL);
+        destroyBuffer(&mvpBuffers[i]);
+        destroyBuffer(&materialBuffers[i]);
     }
 
-    vkDestroyBuffer(device, vertexBuffer, NULL);
-    vkFreeMemory(device, vertexBufferMemory, NULL);
-
-    vkDestroyBuffer(device, indexBuffer, NULL);
-    vkFreeMemory(device, indexBufferMemory, NULL);
+    destroyBuffer(&vertexBuffer);
+    destroyBuffer(&indexBuffer);
 
     destroyFramebuffers();
     destroyCommandBuffers();
@@ -558,5 +610,4 @@ void enableFullScreen() {
 
     ShowCursor(false);
     vkAcquireFullScreenExclusiveModeEXT2(device, swapchain.swapchain);
-    //createSwapchain();
 }
