@@ -226,7 +226,7 @@ void createDescriptorSet() {
     };
     vkAllocateDescriptorSets(device, &allocInfo, descriptorSets);
 
-    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
         VkDescriptorBufferInfo mvpBufferInfo = {
             .buffer = mvpBuffers[i].buffer,
             .offset = 0,
@@ -417,7 +417,7 @@ void createCommandBuffers() {
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.layout, 0, 1, &descriptorSets[currentFrame], 0, NULL);
         vkCmdDrawIndexed(commandBuffers[i], sizeof(indices) / sizeof(uint32_t), 1, 0, 0, 0);
         vkCmdEndRenderPass(commandBuffers[i]);
-        VkResult res = vkEndCommandBuffer(commandBuffers[i]);
+        vkEndCommandBuffer(commandBuffers[i]);
     }
 }
 

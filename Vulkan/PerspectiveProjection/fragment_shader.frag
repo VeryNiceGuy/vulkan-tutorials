@@ -57,13 +57,13 @@ layout(binding = 2) uniform MaterialsUB {
     Material materials[MAX_MATERIALS];
 } materialsi;
 
-layout(binding = 2) uniform sampler2D diffuseMaps[MAX_MATERIALS];
-layout(binding = 3) uniform sampler2D normalMaps[MAX_MATERIALS];
-layout(binding = 4) uniform sampler2D specularMaps[MAX_MATERIALS];
-layout(binding = 5) uniform sampler2D emissiveMaps[MAX_MATERIALS];
-layout(binding = 6) uniform sampler2D alphaMaps[MAX_MATERIALS];
-layout(binding = 7) uniform sampler2D bumpMaps[MAX_MATERIALS];
-layout(binding = 8) uniform sampler2D displacementMaps[MAX_MATERIALS];
+layout(binding = 3) uniform sampler2D diffuseMaps[MAX_MATERIALS];
+layout(binding = 4) uniform sampler2D normalMaps[MAX_MATERIALS];
+layout(binding = 5) uniform sampler2D specularMaps[MAX_MATERIALS];
+layout(binding = 6) uniform sampler2D emissiveMaps[MAX_MATERIALS];
+layout(binding = 7) uniform sampler2D alphaMaps[MAX_MATERIALS];
+layout(binding = 8) uniform sampler2D bumpMaps[MAX_MATERIALS];
+layout(binding = 9) uniform sampler2D displacementMaps[MAX_MATERIALS];
 
 layout(location = 0) out vec4 out_color;
 
