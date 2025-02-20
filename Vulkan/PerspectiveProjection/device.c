@@ -63,7 +63,8 @@ void createLogicalDevice(
 ) {
     const char* deviceExtensions[] = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-        VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
+        VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME,
+        VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME
     };
 
     float queuePriority = 1.0f;
@@ -81,12 +82,23 @@ void createLogicalDevice(
         }
     };
 
+    VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
+        .descriptorBindingPartiallyBound = VK_TRUE
+    };
+
+    VkPhysicalDeviceFeatures2 deviceFeatures2 = {
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = &indexingFeatures
+    };
+
     VkDeviceCreateInfo deviceCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = &deviceFeatures2,
         .pQueueCreateInfos = deviceQueueCreateInfos,
         .queueCreateInfoCount = graphicsQueueFamilyIndex != presentQueueFamilyIndex ? 2 : 1,
         .ppEnabledExtensionNames = deviceExtensions,
-        .enabledExtensionCount = 2
+        .enabledExtensionCount = sizeof(deviceExtensions) / sizeof(deviceExtensions[0])
     };
 
     vkCreateDevice(physicalDevice, &deviceCreateInfo, NULL, device);
