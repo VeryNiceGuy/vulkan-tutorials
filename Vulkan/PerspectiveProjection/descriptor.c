@@ -11,7 +11,8 @@ void createDescriptorPool(
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
         .poolSizeCount = count,
         .pPoolSizes = sizes,
-        .maxSets = maxSets
+        .maxSets = maxSets,
+        .flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT
     };
     vkCreateDescriptorPool(device, &poolInfo, NULL, pool);
 }

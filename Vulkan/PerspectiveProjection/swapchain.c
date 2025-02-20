@@ -240,6 +240,8 @@ void recreateSwapchain(Swapchain* swapchain) {
     vkCreateSwapchainKHR(swapchain->device, &swapchainCreateInfo, NULL, &swapchain->swapchain);
     getSwapchainImages(swapchain);
     createSwapchainImageViews(swapchain);
+
+    vkDeviceWaitIdle(swapchain->device);
     destroyImageViews(swapchain->device, oldSwapchainImageCount, oldSwapchainImageViews);
     vkDestroySwapchainKHR(swapchain->device, oldSwapchain, NULL);
 }
@@ -254,7 +256,7 @@ void enterFullscreenMode(Swapchain* swapchain) {
     MONITORINFOEX monitorInfo = {
         .cbSize = sizeof(MONITORINFOEX)
     };
-    GetMonitorInfo(monitor, &monitorInfo);
+    GetMonitorInfo(monitor, (MONITORINFO*)&monitorInfo);
 
     /*
     int monitorX = monitorInfo.rcMonitor.left;
