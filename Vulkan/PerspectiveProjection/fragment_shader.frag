@@ -1,4 +1,37 @@
 #version 450
+
+#define MAX_POINT_LIGHTS 8
+#define MAX_DIRECTIONAL_LIGHTS 4
+#define MAX_SPOT_LIGHTS 4
+
+struct AmbientLight {
+    vec3 color;
+    float intensity;
+};
+
+struct PointLight {
+    vec3 position;
+    float intensity;
+    vec3 color;
+    float range;
+};
+
+struct DirectionalLight {
+    vec3 direction;
+    float intensity;
+    vec3 color;
+};
+
+struct SpotLight {
+    vec3 position;
+    vec3 direction;
+    float intensity;
+    vec3 color;
+    float range;
+    float innerConeAngle;
+    float outerConeAngle;
+};
+
 layout(location = 0) in vec2 frag_uv_coords;
 layout(binding = 1) uniform sampler2D texture_sampler;
 
