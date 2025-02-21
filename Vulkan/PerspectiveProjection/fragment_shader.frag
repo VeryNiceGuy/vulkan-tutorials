@@ -11,23 +11,23 @@ struct AmbientLight {
 };
 
 struct PointLight {
-    vec3 position;
+	vec3 color;
     float intensity;
-    vec3 color;
+    vec3 position;
     float range;
 };
 
 struct DirectionalLight {
-    vec3 direction;
-    float intensity;
     vec3 color;
+	float intensity;
+    vec3 direction;
 };
 
 struct SpotLight {
+    vec3 color;
+    float intensity;
     vec3 position;
     vec3 direction;
-    float intensity;
-    vec3 color;
     float range;
     float innerConeAngle;
     float outerConeAngle;
@@ -52,7 +52,6 @@ struct Material {
 
 layout(location = 0) in vec2 frag_uv_coords;
 layout(binding = 1) uniform sampler2D texture_sampler;
-
 layout(binding = 2) uniform MaterialsUB {
     Material materials[MAX_MATERIALS];
 } materialsi;
@@ -64,6 +63,16 @@ layout(binding = 6) uniform sampler2D emissiveMaps[MAX_MATERIALS];
 layout(binding = 7) uniform sampler2D alphaMaps[MAX_MATERIALS];
 layout(binding = 8) uniform sampler2D bumpMaps[MAX_MATERIALS];
 layout(binding = 9) uniform sampler2D displacementMaps[MAX_MATERIALS];
+
+layout(binding = 10) uniform LightsUB {
+    AmbientLight ambient;
+	DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+	uint directionalLightCount;
+	SpotLight spotLights[MAX_SPOT_LIGHTS];
+	uint spotLightCount;
+	PointLight pointLights[MAX_POINT_LIGHTS];
+	uint pointLightCount;
+} lightsi;
 
 layout(location = 0) out vec4 out_color;
 

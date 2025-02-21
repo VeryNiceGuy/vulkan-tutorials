@@ -51,6 +51,7 @@ VkFence inFlightFences[MAX_FRAMES_IN_FLIGHT];
 
 Buffer mvpBuffers[MAX_FRAMES_IN_FLIGHT];
 Buffer materialBuffers[MAX_FRAMES_IN_FLIGHT];
+Buffer lightBuffers[MAX_FRAMES_IN_FLIGHT];
 
 size_t currentFrame = 0;
 
@@ -96,8 +97,52 @@ typedef struct MaterialProp {
     bool hasDisplacementMap;
 } MaterialProp;
 
+typedef struct AmbientLight {
+    RgbColor color;
+    float intensity;
+} AmbientLight;
+
+typedef struct {
+    RgbColor color;
+    float intensity;
+    Vector3 direction;
+} DirectionalLight;
+
+typedef struct SpotLight {
+    RgbColor color;
+    float intensity;
+    Vector3 position;
+    Vector3 direction;
+    float range;
+    float innerConeAngle;
+    float outerConeAngle;
+} SpotLight;
+
+typedef struct PointLight {
+    RgbColor color;
+    float intensity;
+    Vector3 position;
+    float range;
+} PointLight;
+
+#define MAX_MATERIALS 10
+#define MAX_DIRECTIONAL_LIGHTS 10
+#define MAX_SPOT_LIGHTS 10
+#define MAX_POINT_LIGHTS 10
+
+typedef struct LightsUB {
+    AmbientLight ambient;
+    DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
+    uint32_t directionalLightCount;
+    SpotLight spotLights[MAX_SPOT_LIGHTS];
+    uint32_t spotLightCount;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    uint32_t pointLightCount;
+} LightsUB;
+
 struct MVP mvp;
-MaterialProp materialProp;
+MaterialProp materialProp[MAX_MATERIALS];
+LightsUB lightsUB;
 Camera camera;
 
 VkDescriptorSetLayout descriptorSetLayouts[MAX_FRAMES_IN_FLIGHT];
@@ -127,8 +172,6 @@ void destroyCommandBuffers() {
     commandBuffers = VK_NULL_HANDLE;
 }
 
-#define MAX_MATERIALS 10
-
 void createDescriptorSetLayout() {
     VkDescriptorSetLayoutBinding layoutBindings[] = {
         {
@@ -146,7 +189,7 @@ void createDescriptorSetLayout() {
         {
             .binding = 2,
             .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            .descriptorCount = MAX_MATERIALS,
+            .descriptorCount = 1,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         },
         {
@@ -190,24 +233,30 @@ void createDescriptorSetLayout() {
             .descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             .descriptorCount = MAX_MATERIALS,
             .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
+        },
+        {
+            .binding = 10,
+            .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT
         }
     };
 
-    VkDescriptorBindingFlags bindingFlags[10] = { 0 };
+    VkDescriptorBindingFlags bindingFlags[11] = { 0 };
 
-    for (uint32_t i = 2; i < 10; ++i) {
+    for (uint32_t i = 2; i < 11; ++i) {
         bindingFlags[i] = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT;
     }
 
     VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlagsCreateInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
-        .bindingCount = 10,
+        .bindingCount = 11,
         .pBindingFlags = bindingFlags
     };
 
     VkDescriptorSetLayoutCreateInfo layoutInfo = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-        .bindingCount = 10,
+        .bindingCount = 11,
         .pBindings = layoutBindings,
         .pNext = &bindingFlagsCreateInfo
     };
@@ -235,6 +284,12 @@ void createDescriptorSet() {
 
         VkDescriptorBufferInfo materialBufferInfo = {
             .buffer = materialBuffers[i].buffer,
+            .offset = 0,
+            .range = VK_WHOLE_SIZE
+        };
+
+        VkDescriptorBufferInfo lightBufferInfo = {
+            .buffer = lightBuffers[i].buffer,
             .offset = 0,
             .range = VK_WHOLE_SIZE
         };
@@ -272,10 +327,19 @@ void createDescriptorSet() {
                 .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
                 .descriptorCount = 1,
                 .pBufferInfo = &materialBufferInfo
+            },
+            {
+                .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                .dstSet = descriptorSets[i],
+                .dstBinding = 10,
+                .dstArrayElement = 0,
+                .descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                .descriptorCount = 1,
+                .pBufferInfo = &lightBufferInfo
             }
         };
 
-        vkUpdateDescriptorSets(device, 3, descriptorWrites, 0, NULL);
+        vkUpdateDescriptorSets(device, 4, descriptorWrites, 0, NULL);
     }
 }
 
@@ -286,11 +350,10 @@ void createUniformBuffers() {
         .proj = matrix4x4_perspective_fov_lh_gl(0.785398f, 800.0f / 600.0f, 0.1f, 100.0f)
     };
 
-    materialProp = (MaterialProp){ 0 };
-
     for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
         createUniformBuffer(physicalDevice, device, &mvpBuffers[i], sizeof(mvp));
         createUniformBuffer(physicalDevice, device, &materialBuffers[i], sizeof(materialProp));
+        createUniformBuffer(physicalDevice, device, &lightBuffers[i], sizeof(LightsUB));
     }
 }
 
@@ -568,6 +631,7 @@ void deinitialize() {
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         destroyBuffer(&mvpBuffers[i]);
         destroyBuffer(&materialBuffers[i]);
+        destroyBuffer(&lightBuffers[i]);
     }
 
     destroyBuffer(&vertexBuffer);
